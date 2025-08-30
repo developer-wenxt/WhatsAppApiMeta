@@ -797,4 +797,129 @@ public class PhoenixAsyncProcessThread {
 		}
 		return apiReponse;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public String callSwazilandComApi(String url, String request) {
+		String apiReponse = "";
+		try {
+			Response response = null;
+			Map<String, Object> tokReq = new HashMap<String, Object>();
+			tokReq.put("LoginId", "SZL_Whatsapp");
+			tokReq.put("Password", "Admin@01");
+			tokReq.put("ReLoginKey", "Y");
+			
+			final TrustManager[] trustAllCerts = new TrustManager[] {
+					new X509TrustManager() {
+						@Override
+						public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+
+						@Override
+						public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+
+						@Override
+						public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+							return new java.security.cert.X509Certificate[]{};
+						}
+					}
+			};
+			
+			final SSLContext sslContext = SSLContext.getInstance("SSL");
+			sslContext.init(null, trustAllCerts, new java.security.SecureRandom()); 
+
+			httpClient = new OkHttpClient.Builder().sslSocketFactory(sslContext.getSocketFactory(),(X509TrustManager)trustAllCerts[0]).readTimeout(60, TimeUnit.SECONDS)
+					.connectTimeout(60, TimeUnit.SECONDS).build();
+			
+			String tokenJsonReq = new Gson().toJson(tokReq);
+			String tokenApi = cs.getwebserviceurlProperty().getProperty("wh.phoenix.token.api");
+			
+			RequestBody tokenReqBody = RequestBody.create(tokenJsonReq, mediaType);
+			Request tokenReq = new Request.Builder().url(tokenApi).post(tokenReqBody).build();
+			response = httpClient.newCall(tokenReq).execute();
+			String obj = response.body().string();	
+			Map<String, Object> tokenRes = mapper.readValue(obj, Map.class);
+			Map<String, Object> tokenObj = tokenRes.get("Result") == null ? null
+					: (Map<String, Object>) tokenRes.get("Result");
+			String token = tokenObj.get("Token") == null ? "" : tokenObj.get("Token").toString();
+			
+			RequestBody apiReqBody = RequestBody.create(request, mediaType);
+			Request apiReq = new Request.Builder().addHeader("Authorization", "Bearer " + token).url(url)
+					.post(apiReqBody).build();
+			
+			response = httpClient.newCall(apiReq).execute();
+			apiReponse = response.body().string();
+		}
+		catch(Exception e) {
+		e.printStackTrace();
+		}
+		return apiReponse;
+	}
+	
+	public String getSwazilandToken() {
+		try {
+			Map<String, Object> tokenReq = new HashMap<String,Object>();
+			tokenReq.put("LoginId", "SZL_Whatsapp");
+			tokenReq.put("Password", "Admin@01");
+			tokenReq.put("ReLoginKey", "Y");
+			
+			//Response response = null;
+			String token ="";
+			final TrustManager[] trustAllCerts = new TrustManager[] {
+					new X509TrustManager() {
+						@Override
+						public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+
+						@Override
+						public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+
+						@Override
+						public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+							return new java.security.cert.X509Certificate[]{};
+						}
+					}
+			};
+			
+			final SSLContext sslContext = SSLContext.getInstance("SSL");
+			sslContext.init(null, trustAllCerts, new java.security.SecureRandom()); 
+
+			httpClient = new OkHttpClient.Builder().sslSocketFactory(sslContext.getSocketFactory(),(X509TrustManager)trustAllCerts[0]).readTimeout(60, TimeUnit.SECONDS)
+					.connectTimeout(60, TimeUnit.SECONDS).build();
+			
+			String tokenJsonReq = new Gson().toJson(tokenReq);
+			String tokenApi = cs.getwebserviceurlProperty().getProperty("wh.phoenix.token.api");
+			
+			RequestBody tokenReqBody = RequestBody.create(tokenJsonReq, mediaType);
+			Request tokenRequest = new Request.Builder().url(tokenApi).post(tokenReqBody).build();
+		/*	response = httpClient.newCall(tokenRequest).execute();
+			String obj = response.body().string();	
+			Map<String, Object> tokenRes = mapper.readValue(obj, Map.class);
+			Map<String, Object> tokenObj = tokenRes.get("Result") == null ? null
+					: (Map<String, Object>) tokenRes.get("Result");
+			String token = tokenObj.get("Token") == null ? "" : tokenObj.get("Token").toString();
+			*/
+			
+			try (Response response = httpClient.newCall(tokenRequest).execute()) {
+				if (response.isSuccessful() && response.body() != null) {
+					String obj = response.body().string();
+					System.out.println("Response Body: " + obj); // Debug print
+
+					Map<String, Object> tokenRes = mapper.readValue(obj, Map.class);
+					Map<String, Object> tokenObj = tokenRes.get("Result") == null ? null
+							: (Map<String, Object>) tokenRes.get("Result");
+                    token = tokenObj != null && tokenObj.get("Token") != null ? tokenObj.get("Token").toString() : "";
+
+					System.out.println("Token: " + token);
+				} else {
+					System.out.println("HTTP Error: " + response.code());
+				}
+			
+			return token;
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

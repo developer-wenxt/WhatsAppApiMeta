@@ -6,4 +6,6 @@ public interface PhoenixZambiaWhatsAppService {
 
 	String zambiaWebhookRes(WebhookReq webhookReq);
 
+	String zambiaWebhookFlowRes(WebhookReq webhookReq);
+
 }

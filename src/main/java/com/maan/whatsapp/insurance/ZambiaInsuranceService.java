@@ -6,7 +6,7 @@ import com.maan.whatsapp.config.exception.WhatsAppValidationException;
 
 public interface ZambiaInsuranceService {
 
-	Object generateZambiaQuote(InsuranceReq req) throws JsonProcessingException,JsonMappingException, WhatsAppValidationException;
+	Object generateZambiaQuote(Object req) throws JsonProcessingException,JsonMappingException, WhatsAppValidationException;
 
 	Object zambiaQuote(Object req) throws JsonMappingException, JsonProcessingException, WhatsAppValidationException;
 

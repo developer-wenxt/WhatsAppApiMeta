@@ -17,8 +17,18 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.maan.whatsapp.config.exception.WhatsAppValidationException;
 import com.maan.whatsapp.entity.master.QWAChatRecipientMaster;
 import com.maan.whatsapp.entity.master.QWAMessageMaster;
 import com.maan.whatsapp.entity.master.QWhatsappTemplateMaster;
@@ -28,15 +38,19 @@ import com.maan.whatsapp.entity.master.WAChatRecipientMasterPK;
 import com.maan.whatsapp.entity.master.WAMessageMaster;
 import com.maan.whatsapp.entity.master.WhatsappTemplateMaster;
 import com.maan.whatsapp.entity.master.WhatsappTemplateMasterPK;
+import com.maan.whatsapp.entity.whatsapp.PhoenixUserDataDetails;
 import com.maan.whatsapp.entity.whatsapp.QWhatsappRequestDetail;
 import com.maan.whatsapp.entity.whatsapp.WADataDetail;
 import com.maan.whatsapp.entity.whatsapp.WADataDetailPK;
 import com.maan.whatsapp.entity.whatsapp.WhatsappContactData;
 import com.maan.whatsapp.entity.whatsapp.WhatsappRequestDetail;
 import com.maan.whatsapp.entity.whatsapp.WhatsappRequestDetailPK;
+import com.maan.whatsapp.insurance.UserSession;
+import com.maan.whatsapp.insurance.ZambiaInsuranceServiceImpl;
 import com.maan.whatsapp.repository.master.WAChatRecipientMasterRepo;
 import com.maan.whatsapp.repository.master.WAMessageMasterRepo;
 import com.maan.whatsapp.repository.master.WhatsappTemplateMasterRepo;
+import com.maan.whatsapp.repository.whatsapp.PhoenixUserDataDetailsRepo;
 import com.maan.whatsapp.repository.whatsapp.WADataDetailRepo;
 import com.maan.whatsapp.repository.whatsapp.WhatsappContactDataRepo;
 import com.maan.whatsapp.repository.whatsapp.WhatsappRequestDetailRepo;
@@ -46,8 +60,6 @@ import com.maan.whatsapp.request.whatsapp.WAWatiReq;
 import com.maan.whatsapp.request.whatsapp.WhatsAppReq;
 import com.maan.whatsapp.service.common.CommonService;
 import com.maan.whatsapp.service.motor.MotorServiceImpl;
-import com.maan.whatsapp.service.wati.WatiApiCall;
-import com.maan.whatsapp.service.wati.WatiService;
 import com.maan.whatsapp.service.wati.ZambiaWatiApiCall;
 import com.maan.whatsapp.service.wati.ZambiaWatiService;
 import com.querydsl.core.Tuple;
@@ -71,6 +83,9 @@ private Logger log = LogManager.getLogger(getClass());
 	
 	@Autowired
 	private CommonService cs;
+	
+	@Autowired
+	private ObjectMapper mapper;
 	
 	@Autowired
 	private ZambiaWatiApiCall zambWatiApiCall;
@@ -100,7 +115,19 @@ private Logger log = LogManager.getLogger(getClass());
 	private WhatsappTemplateMasterRepo wtmRepo;
 	
 	@Autowired
+	private PhoenixUserDataDetailsRepo userDataRepo;
+	
+	@Autowired
+	private ZambiaInsuranceServiceImpl zambiaInsuranceService;
+	
+	@Autowired
+	private Gson objectPrint;
+	
+	@Autowired
 	private JPAQueryFactory jpa;
+	
+	@Value("${askeva.template.api.zambia}")
+	private String askeveApiforZambia;
 	
 	@Value("${main.menu.button}")
 	private String mainMenu;
@@ -1142,7 +1169,450 @@ private Logger log = LogManager.getLogger(getClass());
 		return null;
 	}
 
+	@Override
+	public String zambiaWebhookFlowRes(WebhookReq webhookReq) {
+		try {
 
+			log.info("Zambia webhookRes--> request: "+webhookReq);
+			cs.reqPrint(webhookReq);
+ 
+			List<WebhookReq> list = new ArrayList<WebhookReq>();
+			list.add(webhookReq);
 
+			Flux.fromIterable(list)
+				.map(i -> saveUserData(i))
+				.subscribeOn(Schedulers.boundedElastic())
+				.subscribe();
 
+		} catch (Exception e) {
+			log.error(e);
+		}
+		return null;	
+	}
+	
+	List<String> questionTexts = Arrays.asList(
+			"Please Choose Your Vehicle Usage",
+			"Please Enter the Registration Number",
+			"Please Choose your ID-Type",
+			"Please Enter your ID-Number",
+			"Please Choose the Insured Period",
+			"Please Enter your Name",
+			"Please Enter your Payment Mobile Number",
+			"Thank you! You've completed the questionnaire. please type OK"
+      );
+	
+	List<String> apiKeys = Arrays.asList(
+			"motor_usage","reg_no","id_type","id_num","ins_period","cus_name","mob_no","thank_you"
+				);
+	
+	List<String> questionTextsforComprehensive = Arrays.asList(
+			"Please Choose Your Vehicle Usage",
+			"Please Enter the Registration Number",
+			"Please Choose your ID-Type",
+			"Please Enter your ID-Number",
+			"Please Choose the Insured Period",
+			"Please Enter the Sum Insured Amount",
+			"Please Enter your Name",
+			"Please Enter your Payment Mobile Number",
+			"Thank you! You've completed the questionnaire. please type OK"
+      );
+	
+	List<String> apiKeysforComprehensive = Arrays.asList(
+			"motor_usage","reg_no","id_type","id_num","ins_period","sum_insured","cus_name","mob_no","thank_you"
+				);
+	private final Map<String, UserSession> sessionMap = new HashMap<>();
+	
+	private String saveUserData(WebhookReq request) {
+		try {
+			Long waid = Long.valueOf(request.getWaId());
+
+			log.info("saveUserData--> waid: " + waid);
+
+			Date watiDate = new Date();
+
+			log.info("saveUserData--> watiDate: " + watiDate);
+			
+			PhoenixUserDataDetails datas = new PhoenixUserDataDetails();
+			if(request.getType().equalsIgnoreCase("text")) {
+				if(request.getText().equalsIgnoreCase("hi")) {
+					
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getText());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG001");
+					datas.setUserMessageId("MSG001");
+					sessionMap.remove(waid.toString());
+				}else {
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getText());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG010");
+					datas.setUserMessageId("MSG010");
+					
+					List<PhoenixUserDataDetails> userDetails = null;
+					List<PhoenixUserDataDetails> userDetails2 = null;
+					PhoenixUserDataDetails details = null;
+					String insType = "", resp ="";
+					
+					
+					List<String> messageIds = Arrays.asList("MSG200", "MSG100");
+					 userDetails = userDataRepo.findTop1ByWaidAndCompanyIdAndUserMessageIdInOrderByEntryDateDesc(waid,"100046",messageIds);
+					 
+					
+					if(userDetails.isEmpty()) {
+					//	userDetails2 = userDataRepo.findByWaidAndParentMessageIdAndUserMessageIdAndCompanyIdInOrderByEntryDateDesc(waid,"MSG100","MSG100","100046");					
+					//	details = userDetails2.get(0);
+					//	 insType = details.getUserReply();
+								System.out.println(insType);
+					}else {
+						details = userDetails.get(0);
+						 insType = details.getUserReply();
+								System.out.println(insType);
+					}
+					if(insType.equalsIgnoreCase("Comprehensive")) {
+						
+						resp = handleIncomingMessageForComp(waid.toString(),request.getText(),insType);
+						datas.setFlowRequest(resp);
+						
+					}else if(insType.equalsIgnoreCase("Act Only") || insType.equalsIgnoreCase("Full Third Party")) {
+						resp = handleIncomingMessageForOthers(waid.toString(),request.getText(),insType);
+						datas.setFlowRequest(resp);
+					}
+				}
+			}else if(request.getType().equalsIgnoreCase("interactive")) {
+				
+				 if(request.getButtonTitle().equalsIgnoreCase("Motor Insurance")) {
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getButtonTitle());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG001");
+					datas.setUserMessageId("MSG002");
+					sessionMap.remove(waid.toString());
+				}else if(request.getButtonTitle().equalsIgnoreCase("Buy New Insurance")) {
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getButtonTitle());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG002");
+					datas.setUserMessageId("MSG003");
+					sessionMap.remove(waid.toString());
+				}else if(request.getButtonTitle().equalsIgnoreCase("Search Vehicle")) {
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getButtonTitle());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG003");
+					datas.setUserMessageId("MSG004");
+					sessionMap.remove(waid.toString());
+				}else if(request.getButtonTitle().equalsIgnoreCase("Add New Vehicle")) {
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getButtonTitle());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG003");
+					datas.setUserMessageId("MSG005");
+					sessionMap.remove(waid.toString());
+				}else if(request.getButtonTitle().equalsIgnoreCase("Act Only")){
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getButtonTitle());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG100");
+					datas.setUserMessageId("MSG100");
+					sessionMap.remove(waid.toString());
+				}else if(request.getButtonTitle().equalsIgnoreCase("Comprehensive")) {
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getButtonTitle());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG200");
+					datas.setUserMessageId("MSG200");
+					sessionMap.remove(waid.toString());
+				}else if(request.getButtonTitle().equalsIgnoreCase("Full Third Party")) {
+					datas.setCompanyId("100046");
+					datas.setEntryDate(watiDate);
+					datas.setWaid(waid);
+					datas.setWamessageid(request.getWhatsappMessageId());
+					datas.setUserReply(request.getButtonTitle());
+					datas.setStatus("Y");
+					datas.setParentMessageId("MSG100");
+					datas.setUserMessageId("MSG100");
+					sessionMap.remove(waid.toString());
+				}
+			}
+						
+			userDataRepo.saveAndFlush(datas);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+
+	public String handleIncomingMessageForComp(String waIds, String textBody,String insClass) {
+		UserSession session = sessionMap.getOrDefault(waIds, new UserSession());
+		
+		String apiResult ="";
+
+        int index = session.getCurrentQuestionIndex();
+        if (index >= apiKeysforComprehensive.size()) {
+            sendWhatsappMessage(waIds, "You have already completed the form.");
+            return "";
+        }
+        
+     // Store the answer with the correct key
+        session.addAnswer(apiKeysforComprehensive.get(index), textBody);
+        session.nextQuestion();
+        sessionMap.put(waIds, session);
+        Map<String,String> currentSessionResp = session.getResponses();
+        try {
+			String sessionResp = mapper.writeValueAsString(currentSessionResp);
+			apiResult = sessionResp ;
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        // Send next question or finalize
+        if (index + 1 < questionTextsforComprehensive.size()) {
+            sendWhatsappMessage(waIds, questionTextsforComprehensive.get(index + 1));
+        } else {
+            try {
+				apiResult = callYourAPI(session.getResponses(),insClass,waIds);
+			} catch (JsonProcessingException | WhatsAppValidationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            sessionMap.remove(waIds);
+            sendWhatsappMessage(waIds, "✅ Thank you! All your details have been received.");
+            
+            if(StringUtils.isNoneBlank(apiResult)) {
+            	responseMethodCall(apiResult,waIds);
+            }
+        }
+		return apiResult;
+	}
+	
+	public String handleIncomingMessageForOthers(String waIds, String textBody, String insClass) {
+		UserSession session = sessionMap.getOrDefault(waIds, new UserSession());
+		
+		String apiResult ="";
+
+        int index = session.getCurrentQuestionIndex();
+        if (index >= apiKeys.size()) {
+            sendWhatsappMessage(waIds, "You have already completed the form.");
+            return "";
+        }
+        
+     // Store the answer with the correct key
+        session.addAnswer(apiKeys.get(index), textBody);
+        session.nextQuestion();
+        sessionMap.put(waIds, session);
+        Map<String,String> currentSessionResp = session.getResponses();
+        try {
+			String sessionResp = mapper.writeValueAsString(currentSessionResp);
+			apiResult = sessionResp ;
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        // Send next question or finalize
+        if (index + 1 < questionTexts.size()) {
+            sendWhatsappMessage(waIds, questionTexts.get(index + 1));
+        } else {
+            try {
+				apiResult = callYourAPI(session.getResponses(),insClass,waIds);
+			} catch (JsonProcessingException | WhatsAppValidationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            sessionMap.remove(waIds);
+            sendWhatsappMessage(waIds, "✅ Thank you! All your details have been received.");
+            
+            if(StringUtils.isNoneBlank(apiResult)) {
+            	responseMethodCall(apiResult,waIds);
+            }
+        }
+		return apiResult;
+	}
+
+	private String callYourAPI(Map<String, String> data, String insClass,String waIds) throws JsonMappingException, JsonProcessingException, WhatsAppValidationException{
+	        //String apiUrl = "http://localhost:6060/WhatsAppApiMeta/insurance/generate/swaziland/quote";
+	        
+	        log.info("Create Quote Api Req " + data);
+	        
+	       Map<String,Object> responsce= (Map<String, Object>) zambiaInsuranceService.generateZambiaQuote(data,insClass,waIds);
+	       
+	       String resp = objectPrint.toJson(responsce);
+		return resp;
+	}
+
+	private void sendWhatsappMessage(String waId, String message) {
+		System.out.println("Sending to " + waId + ": " + message);
+		log.info("Sending to " + waId + ": " + message);
+		// Here, you can call the Meta WhatsApp API to actually send the message.
+	}
+	
+	private void responseMethodCall(String apiResult, String waIds) {
+		log.info("Response Send No: " + waIds);
+		
+		Map<String,Object> result =  null;
+		try {
+			 result = mapper.readValue(apiResult, Map.class);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String displayName = result.get("customer_name") == null ? "" : result.get("customer_name").toString();
+		String registrationNo = result.get("registration") == null ? "" : result.get("registration").toString();
+		String chassisNo = result.get("chassis") == null ? "" : result.get("chassis").toString();
+		String vehicleUsage = result.get("usage") == null ? "" : result.get("usage").toString();
+		String vehicleType = result.get("vehtype") == null ? "" : result.get("vehtype").toString();
+		String vehicleColor = result.get("color") == null ? "" : result.get("color").toString();
+		String sumInsured = result.get("suminsured") == null ? "" : result.get("suminsured").toString();
+		String premium = result.get("premium") == null ? "" : result.get("premium").toString();
+		String vat = result.get("vat") == null ? "" : result.get("vat").toString();
+		String vatAmt = result.get("vatamt") == null ? "" : result.get("vatamt").toString();
+		String totalPremium = result.get("totalpremium") == null ? "" : result.get("totalpremium").toString();
+		String inceptionDate = result.get("inceptiondate") == null ? "" : result.get("inceptiondate").toString();
+		String expiryDate = result.get("expirydate") == null ? "" : result.get("expirydate").toString();
+		String referenceNo = result.get("referenceno") == null ? "" : result.get("referenceno").toString();
+		String payment = result.get("url") == null ? "" : result.get("url").toString();
+		String make = result.get("veh_make_desc") == null ? "" : result.get("veh_make_desc").toString();
+		String model = result.get("veh_model_desc") == null ? "" : result.get("veh_model_desc").toString();
+		
+		
+		Map<String,Object> respMap = new HashMap<>();
+		respMap.put("to", waIds);
+		respMap.put("type", "template");
+		
+		Map<String,Object> langMap = new HashMap<>();
+		langMap.put("policy", "deterministic");
+		langMap.put("code", "en");
+		
+		Map<String,Object> componentsMap = new HashMap<>();
+		componentsMap.put("type", "body");
+		
+		//Map<String,Object> nameMapping = new HashMap<>();
+		//nameMapping.put("name", "motor_quotation_res");
+		
+		Map<String,Object> nameMap = new HashMap<>();
+		nameMap.put("type", "text");
+		nameMap.put("text", displayName);
+		
+		Map<String,Object> regNoMap = new HashMap<>();
+		regNoMap.put("type", "text");
+		regNoMap.put("text", registrationNo);
+		
+		Map<String,Object> chassisNoMap = new HashMap<>();
+		chassisNoMap.put("type", "text");
+		chassisNoMap.put("text", chassisNo);
+		
+		Map<String,Object> vehUsageMap = new HashMap<>();
+		vehUsageMap.put("type", "text");
+		vehUsageMap.put("text", vehicleUsage);
+		
+		
+		Map<String,Object> vehTypeMap = new HashMap<>();
+		vehTypeMap.put("type", "text");
+		vehTypeMap.put("text", vehicleType);
+		
+	//	Map<String,Object> colorMap = new HashMap<>();
+	//	colorMap.put("type", "text");
+	//	colorMap.put("text", vehicleColor);
+		
+		Map<String,Object> sumInsuredMap = new HashMap<>();
+		sumInsuredMap.put("type", "text");
+		sumInsuredMap.put("text", sumInsured);
+		
+		Map<String,Object> premiumMap = new HashMap<>();
+		premiumMap.put("type", "text");
+		premiumMap.put("text", premium);
+		
+		Map<String,Object> vatMap = new HashMap<>();
+		vatMap.put("type", "text");
+		vatMap.put("text", vat);
+		
+		Map<String,Object> vatAmtMap = new HashMap<>();
+		vatAmtMap.put("type", "text");
+		vatAmtMap.put("text", vatAmt);
+		
+		Map<String,Object> totPremiumMap = new HashMap<>();
+		totPremiumMap.put("type", "text");
+		totPremiumMap.put("text", totalPremium);
+		
+		Map<String,Object> incDateMap = new HashMap<>();
+		incDateMap.put("type", "text");
+		incDateMap.put("text", inceptionDate);
+		
+	//	Map<String,Object> expDateMap = new HashMap<>();
+	//	expDateMap.put("type", "text");
+	//put("text", expiryDate);
+		
+		Map<String,Object> refNoMap = new HashMap<>();
+		refNoMap.put("type", "text");
+		refNoMap.put("text", referenceNo);
+		
+		Map<String,Object> urlMap = new HashMap<>();
+		urlMap.put("type", "text");
+		urlMap.put("text", payment);
+		
+		Map<String,Object> makeMap = new HashMap<>();
+		makeMap.put("type", "text");
+		makeMap.put("text", make);
+		
+		Map<String,Object> modelMap = new HashMap<>();
+		modelMap.put("type", "text");
+		modelMap.put("text", model);
+		
+		componentsMap.put("parameters", Arrays.asList(nameMap,regNoMap,chassisNoMap,vehUsageMap,vehTypeMap,makeMap,modelMap,sumInsuredMap,
+				premiumMap,vatMap,vatAmtMap,totPremiumMap,incDateMap,refNoMap,urlMap));
+		
+		Map<String,Object> tempMap = new HashMap<>();
+		tempMap.put("language", langMap);
+		tempMap.put("name", "quote_response");
+		tempMap.put("components", Arrays.asList(componentsMap));
+		
+		respMap.put("template", tempMap);
+		
+		String respMapreq = objectPrint.toJson(respMap);
+		
+		String apiUrl = askeveApiforZambia;
+		RestTemplate restTemp = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		
+		HttpEntity<String> request = new HttpEntity<>(respMapreq,headers);
+		
+		try {
+			ResponseEntity<String> response = restTemp.postForEntity(apiUrl, request, String.class);
+			log.info("Template Api Response :"+response.getBody());
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.info(e);
+		}
+		
+	}
 }

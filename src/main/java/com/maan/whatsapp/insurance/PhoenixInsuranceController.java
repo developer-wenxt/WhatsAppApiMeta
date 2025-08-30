@@ -1,5 +1,7 @@
 package com.maan.whatsapp.insurance;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.RequestEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -37,23 +40,28 @@ public class PhoenixInsuranceController {
 	}
 
 	@GetMapping("/phoenix/buypolicy/{request}")
-	public void buypolicy(@PathVariable("request") String request,HttpServletResponse reponse) throws Exception{
+	public RedirectView buypolicy(@PathVariable("request") String request,HttpServletResponse reponse) throws Exception{
 		String redirectLink = insService.buypolicy(request);
-		reponse.sendRedirect(redirectLink);
-	}
-	
-	//@PostMapping("/generate/zambia/quote")
-	public Object generateZambiaQuote(@RequestBody InsuranceReq req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
-		return serviceZambia.generateZambiaQuote(req);
+		return new RedirectView(redirectLink);
 	}
 	
 	@PostMapping("/generate/zambia/quote")
+	public Object generateZambiaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
+		return serviceZambia.generateZambiaQuote(req);
+	}
+	
+	//@PostMapping("/generate/zambia/quote")
 	public Object ZambiaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
 		return serviceZambia.zambiaQuote(req);
 	}
 	
-	@PostMapping("/generate/swaziland/quote")
+	//@PostMapping("/generate/swaziland/quote")
 	public Object generateSwazilandQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
 		return serviceSwaziland.swazilandQuote(req);
+	}
+	
+	@PostMapping("/generate/swaziland/quote")
+	public Object swazilandQuoteGenerate(@RequestBody Map<String, String> req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
+		return serviceSwaziland.swazilandQuoteGenerate(req);
 	}
 }
