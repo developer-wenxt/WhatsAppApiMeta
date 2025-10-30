@@ -38,7 +38,6 @@ import com.maan.whatsapp.response.wati.sendsesfile.SendSessionFile;
 import com.maan.whatsapp.response.wati.sendsesmsg.SendMessageResponse;
 import com.maan.whatsapp.service.common.CommonService;
 import com.maan.whatsapp.service.motor.MotorService;
-import com.maan.whatsapp.service.motor.MotorServiceImplNamibia;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vdurmont.emoji.EmojiParser;
 
@@ -50,7 +49,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 @Service
-public class NamibiaWatiApiCall {
+public class BoatswanaWatiApiCall {
 
 	@Autowired
 	private CommonService cs;
@@ -73,9 +72,6 @@ public class NamibiaWatiApiCall {
 	
 	@Autowired
 	private WhatsappMessageMenuMasterRepository wmmmRpo;
-	
-	@Autowired
-	private MotorServiceImplNamibia motNamCall;
 	
 	private static MediaType contentType =MediaType.parse("application/json");
 	
@@ -126,7 +122,7 @@ public class NamibiaWatiApiCall {
 
 				String apiResp = "";
 
-				apiResp = motNamCall.callMotorApi(detail, waid);
+				apiResp = motSer.callMotorApi(detail, waid);
 
 				detail.setMessage(apiResp.trim());
 				
@@ -168,9 +164,9 @@ public class NamibiaWatiApiCall {
 
 				String status  = StringUtils.isBlank(detail.getStatus())?"Y":detail.getStatus();
 				
-				url=cs.getwebserviceurlProperty().getProperty("namibia.message.api");
+				url=cs.getwebserviceurlProperty().getProperty("boatswana.message.api");
 				
-				auth=cs.getwebserviceurlProperty().getProperty("nambia.message.auth");
+				auth=cs.getwebserviceurlProperty().getProperty("boatswana.message.auth");
 				
 				if(StringUtils.isNotBlank(waReq.getMsg()) && !"R".equals(status)) {
 
@@ -276,9 +272,9 @@ public class NamibiaWatiApiCall {
 					
 				}else if(StringUtils.isNotBlank(waReq.getMsg()) && "R".equals(status)) {
 					
-					url=cs.getwebserviceurlProperty().getProperty("namibia.message.api");
+					url=cs.getwebserviceurlProperty().getProperty("boatswana.message.api");
 					
-					auth=cs.getwebserviceurlProperty().getProperty("nambia.message.auth");
+					auth=cs.getwebserviceurlProperty().getProperty("boatswana.message.auth");
 					
 					waReq =objectMapper.readValue(detail.getMessage(), WAWatiReq.class);
 					
@@ -1095,7 +1091,7 @@ public class NamibiaWatiApiCall {
 				
 				Map<String,Object> section_rows = new HashMap<String, Object>();
 				section_rows.put("rows", rows);
-				section_rows.put("title", "Phoenix Namibia Products");
+				section_rows.put("title", "Phoenix Boatswana Products");
 				
 				List<Map<String,Object>> sections =new ArrayList<>();
 				sections.add(section_rows);
@@ -1302,6 +1298,5 @@ public class NamibiaWatiApiCall {
 		}
 		return message;
 	}
-
 
 }

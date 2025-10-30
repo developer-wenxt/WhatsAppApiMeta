@@ -15,4 +15,6 @@ public interface PhoenixUserDataDetailsRepo extends JpaRepository<PhoenixUserDat
 	List<PhoenixUserDataDetails> findTop1ByWaidAndCompanyIdAndUserMessageIdInOrderByEntryDateDesc(Long waid,
 			String string, List<String> messageIds);
 
+	PhoenixUserDataDetails findTop1ByWaidAndCompanyId(Long mobileNumber, String string);
+
 }

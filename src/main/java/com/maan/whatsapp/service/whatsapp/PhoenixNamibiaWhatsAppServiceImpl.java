@@ -46,6 +46,8 @@ import com.maan.whatsapp.request.whatsapp.WAWatiReq;
 import com.maan.whatsapp.request.whatsapp.WhatsAppReq;
 import com.maan.whatsapp.service.common.CommonService;
 import com.maan.whatsapp.service.motor.MotorServiceImpl;
+import com.maan.whatsapp.service.motor.MotorServiceImplNamibia;
+import com.maan.whatsapp.service.motor.MotorServiceNamibia;
 import com.maan.whatsapp.service.wati.NamibiaWatiApiCall;
 import com.maan.whatsapp.service.wati.NamibiaWatiService;
 import com.maan.whatsapp.service.wati.WatiApiCall;
@@ -76,7 +78,7 @@ private Logger log = LogManager.getLogger(getClass());
 	private NamibiaWatiApiCall namWatiApiCall;
 	
 	@Autowired 
-	private MotorServiceImpl motorImpl;
+	private MotorServiceImplNamibia motorNamImpl;
 	
 	@Autowired
 	private NamibiaWatiService namWatiSer;
@@ -533,7 +535,7 @@ private Logger log = LogManager.getLogger(getClass());
 										&& isskipped.equalsIgnoreCase("N")) {
 
 									// String fileurls[] = data.split("fileName=");
-									motorImpl.saveClaimDocument(data, tempM, type, waid, reqDet);
+									motorNamImpl.saveClaimDocument(data, tempM, type, waid, reqDet);
 									reqDet.setIsprocesscompleted("Y");
 
 								} else if (isDocUpl.equalsIgnoreCase("Y")

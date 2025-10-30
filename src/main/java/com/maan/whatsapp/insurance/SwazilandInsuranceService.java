@@ -16,4 +16,6 @@ public interface SwazilandInsuranceService {
 
 	public String swazilandFlowRequest(Map<String, Object> req);
 
+	Object googleFlowTest(Object req) throws JsonProcessingException, JsonMappingException, WhatsAppValidationException;
+
 }

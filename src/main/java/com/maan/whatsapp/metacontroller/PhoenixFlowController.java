@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.maan.whatsapp.auth.basic.WhatsappEncryptionDecryption;
+import com.maan.whatsapp.config.exception.WhatsAppValidationException;
+import com.maan.whatsapp.insurance.NamibiaInsuranceService;
 import com.maan.whatsapp.insurance.SwazilandInsuranceService;
 import com.maan.whatsapp.meta.Messages;
 import com.maan.whatsapp.meta.MetaEncryptDecryptRes;
@@ -53,6 +55,12 @@ public class PhoenixFlowController {
 	
 	@Autowired
 	private SwazilandInsuranceService serviceSwaziland;
+	
+	@Autowired
+	private PhoenixBoatswanaFlowService serviceBoatswana;
+	
+	@Autowired
+	private NamibiaInsuranceService namibiaInsuranceService;
 	
 	@PostMapping("/create/zambia/quote")
 	public ResponseEntity<Object> createZambiaQoute(@RequestBody Map<String, Object> req) throws JsonMappingException,JsonProcessingException{
@@ -231,4 +239,67 @@ public class PhoenixFlowController {
 		return new ResponseEntity<String>("", HttpStatus.OK);
 
 	}
+	
+	@PostMapping("/create/boatswana/quote")
+	public ResponseEntity<Object> createBoatswanaQoute(@RequestBody Map<String, Object> req) throws JsonMappingException,JsonProcessingException{
+		log.info("/createBoatswanaQuote encrypted request : "+printReq.toJson(req));
+		MetaEncryptDecryptRes dcryptData = WhatsappEncryptionDecryption.metaDecryption(req);
+		Map<String,Object> request = mapper.readValue(dcryptData.getEncrypted_flow_data(), Map.class);
+		String action = request.get("action") == null ? "" : request.get("action").toString();
+		log.info("/createBoatswanaQuote decrypted request : "+printReq.toJson(dcryptData));
+		
+		if("ping".equals(action)) {
+			String version = request.get("version") == null ? "" : request.get("version").toString();
+			Map<String, Object> data = new HashMap<String,Object>();
+			data.put("status", "active");
+			
+			Map<String,Object> healthCheckReq = new HashMap<String,Object>();
+			healthCheckReq.put("version", version);
+			healthCheckReq.put("data", data);
+			
+			String encryptReq = printReq.toJson(healthCheckReq);
+			dcryptData.setEncrypted_flow_data(encryptReq);
+			String response = WhatsappEncryptionDecryption.metaEncryption(dcryptData);
+			
+			return new ResponseEntity<Object>(response,HttpStatus.OK);
+		}else {
+			String response = serviceBoatswana.createBoatswanaQuote(request);
+			dcryptData.setEncrypted_flow_data(response);
+			String encrypt_response = WhatsappEncryptionDecryption.metaEncryption(dcryptData);
+			
+			return new ResponseEntity<Object>(encrypt_response,HttpStatus.OK);
+		}
+	}
+	
+	@GetMapping("/boatswana/flow/screen/data")
+	public Map<String,Object> boatswanaFlowScreenData(){
+		return serviceBoatswana.boatswanaFlowScreenData();
+	}
+	
+	
+	@PostMapping("/nambia/quote")
+	public Object testObj(@RequestBody Object req ) {
+		log.info("/form flow request format : "+printReq.toJson(req));
+		  Object resp= null;
+		try {
+			resp = namibiaInsuranceService.insuranceFlowNamibia(req);
+		} catch (JsonProcessingException | WhatsAppValidationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return resp;
+	}
+	
+	/*@PostMapping("/test")
+	public Object testObj(@RequestBody Object req ) {
+		log.info("/flow request format : "+printReq.toJson(req));
+		  Object resp= null;
+		try {
+			resp = serviceSwaziland.googleFlowTest(req);
+		} catch (JsonProcessingException | WhatsAppValidationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return resp;
+	}*/
 }

@@ -64,4 +64,14 @@ public class PhoenixInsuranceController {
 	public Object swazilandQuoteGenerate(@RequestBody Map<String, String> req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
 		return serviceSwaziland.swazilandQuoteGenerate(req);
 	}
+	
+	@PostMapping("/doc/namibia/response")
+	public Object namibiaDocResponse(@RequestBody InsuranceReq req) {
+		return  serviceNamibia.docResponseSetter(req);
+	}
+	
+	@PostMapping("/namibia/quote/generate")
+	public Object genNamibiaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
+		return  serviceNamibia.quoteGenerationNamibia(req);
+	}
 }

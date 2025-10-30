@@ -414,6 +414,12 @@ public class PhoenixWhatsAppController {
 						webhookReq.setData(msg.get(0).getImage().getId());
 						webhookReq.setMimeType(msg.get(0).getImage().getMime_type());
 
+					}else if ("document".equalsIgnoreCase(type)) {
+
+						webhookReq.setImageId(msg.get(0).getId());
+						webhookReq.setData(msg.get(0).getId());
+					//	webhookReq.setMimeType(msg.get(0).getImage().getMime_type());
+
 					} else if ("interactive".equalsIgnoreCase(type)) {
 
 						String inteType = msg.get(0).getInteractive().getType();
