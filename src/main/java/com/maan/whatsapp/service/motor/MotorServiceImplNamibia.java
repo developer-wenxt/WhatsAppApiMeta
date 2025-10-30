@@ -206,7 +206,9 @@ public class MotorServiceImplNamibia implements MotorServiceNamibia{
                 	   request = objectMapper.writeValueAsString(req);
                    }else {
                 	   request = setApiRequest(reqDetList, reqString);
-   					   request = setApiRequest(waid, request);
+                	   System.out.println("Req 1 :"+ request);
+   					 //  request = setApiRequest(waid, request);
+   					   System.out.println("Req 2 :"+ request);
    					   System.out.println("Before Adding :"+ request);
    					Map<String, Object> map = objectMapper.readValue(request, Map.class);
    				//	Map<String,Object> req = new HashMap<>();
