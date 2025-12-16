@@ -79,7 +79,8 @@ public class ApplicationConfig  {
     				"/**/*.ico", "/**/*.ttf", "/**/*.woff", "/**/*.woff2", "/**/*.otf", "/whatsappflow/**","/whatsapp/webhook","/whatsapp/webhook/meta/**","/whatsapptemplate/document/download/**",
     "/insurance/buypolicy/**","/phoenix/whatsapp/webhook/zambia/**","/phoenix/whatsapp/webhook/namibia/**",
     "/insurance/generate/swaziland/quote","/insurance/phoenix/buypolicy/**","/insurance/generate/zambia/quote",
-    "/phoenix/whatsapp/webhook/boatswana","api/recognition/**","/insurance/doc/namibia/response"};
+    "/phoenix/whatsapp/webhook/boatswana","api/recognition/**","/insurance/doc/namibia/response",
+    "/insurance/boatswana/quote/generate"};
 
     
     @Bean

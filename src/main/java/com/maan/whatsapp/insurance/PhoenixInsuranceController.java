@@ -34,6 +34,9 @@ public class PhoenixInsuranceController {
 	@Autowired
 	private SwazilandInsuranceService serviceSwaziland;
 	
+	@Autowired
+	private BoatswanaInsuranceService serviceBotswana;
+	
 	@PostMapping("/generate/namibia/quote")
 	public Object generateNamibiaQuote(@RequestBody InsuranceReq req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
 		return serviceNamibia.generateNamibiaQuote(req);
@@ -73,5 +76,10 @@ public class PhoenixInsuranceController {
 	@PostMapping("/namibia/quote/generate")
 	public Object genNamibiaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
 		return  serviceNamibia.quoteGenerationNamibia(req);
+	}
+	
+	@PostMapping("/boatswana/quote/generate")
+	public Object genBoatswanaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
+		return  serviceBotswana.quoteGenerationBoatswana(req);
 	}
 }
