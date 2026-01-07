@@ -48,10 +48,10 @@ public class PhoenixInsuranceController {
 		return new RedirectView(redirectLink);
 	}
 	
-	@PostMapping("/generate/zambia/quote")
-	public Object generateZambiaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
-		return serviceZambia.generateZambiaQuote(req);
-	}
+	//@PostMapping("/generate/zambia/quote")
+	//public Object generateZambiaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
+		//return serviceZambia.generateZambiaQuote(req);
+	//}
 	
 	//@PostMapping("/generate/zambia/quote")
 	public Object ZambiaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
@@ -81,5 +81,15 @@ public class PhoenixInsuranceController {
 	@PostMapping("/boatswana/quote/generate")
 	public Object genBoatswanaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
 		return  serviceBotswana.quoteGenerationBoatswana(req);
+	}
+	
+	@PostMapping("/boatswana/payment/generate")
+	public Object generateBoatswanaPaymentLink(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
+		return  serviceBotswana.paymentLinkGenerationBoatswana(req);
+	}
+	
+	@PostMapping("/generate/zambia/quote")
+	public Object generateZambiaQuote(@RequestBody Object req) throws WhatsAppValidationException,JsonProcessingException, JsonMappingException{
+		return serviceZambia.generateZambiaMotorQuote(req);
 	}
 }

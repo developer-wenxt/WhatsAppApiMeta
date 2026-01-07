@@ -10,4 +10,6 @@ public interface ZambiaInsuranceService {
 
 	Object zambiaQuote(Object req) throws JsonMappingException, JsonProcessingException, WhatsAppValidationException;
 
+	Object generateZambiaMotorQuote(Object req) throws JsonMappingException, JsonProcessingException, WhatsAppValidationException;
+
 }

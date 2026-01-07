@@ -8,4 +8,6 @@ public interface BoatswanaInsuranceService {
 
 	Object quoteGenerationBoatswana(Object req) throws JsonProcessingException,JsonMappingException, WhatsAppValidationException;
 
+	Object paymentLinkGenerationBoatswana(Object req) throws JsonProcessingException,JsonMappingException, WhatsAppValidationException;
+
 }

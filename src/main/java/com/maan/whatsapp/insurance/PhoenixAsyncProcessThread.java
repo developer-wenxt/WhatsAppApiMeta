@@ -748,7 +748,7 @@ public class PhoenixAsyncProcessThread {
 		try {
 			Response response = null;
 			Map<String, Object> tokReq = new HashMap<String, Object>();
-			tokReq.put("LoginId", "Zambia_whatsapp");
+			tokReq.put("LoginId", "guest");
 			tokReq.put("Password", "Admin@01");
 			tokReq.put("ReLoginKey", "Y");
 			
