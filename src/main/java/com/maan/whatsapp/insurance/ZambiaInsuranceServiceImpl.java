@@ -3807,7 +3807,7 @@ public class ZambiaInsuranceServiceImpl implements ZambiaInsuranceService {
 							("ID_NUMBER_EXISTS".equalsIgnoreCase(code))) {
 					//	String message = error.get(0).get("Message") == null ? null : error.get(0).get("Message").toString();
 						
-						Pattern pattern = Pattern.compile("PIB-CUST-[0-9]+");
+						Pattern pattern = Pattern.compile("PIZ-CUST-[0-9]+");
 						Matcher matcher = pattern.matcher(message);
 
 						String custCode = "";
@@ -4582,6 +4582,213 @@ public class ZambiaInsuranceServiceImpl implements ZambiaInsuranceService {
 			
 			return botResponceData;
 			
+	}
+
+	@Override
+	public Object paymentLinkGenerationZambia(Object req)
+			throws JsonProcessingException, JsonMappingException, WhatsAppValidationException {
+		
+		String response = "";
+		String exception = "";
+		List<Error> errorList = new ArrayList<>(2);
+		Map<String, Object> botResponceData = new HashMap<String, Object>();
+
+		Map<String, Object> data = mapper.convertValue(req, Map.class);
+		
+		String customerName = data.get("CustomerName") == null ? "" : data.get("CustomerName").toString();
+		String quoteNo = data.get("QuoteNo") == null ? "" : data.get("QuoteNo").toString();
+		String totalPremium = data.get("TotalPremium") == null ? "" : data.get("TotalPremium").toString();
+		String reqRefNo = data.get("ReferenceNo") == null ? "" : data.get("ReferenceNo").toString();
+		String mobileNo = data.get("MobileNo") == null ? "" : data.get("MobileNo").toString();
+		
+		//==============================MAKE PAYMENT BLOCK START=============================================
+			
+			log.info("MAKE PAYMENT BLOCK START : "+new Date());
+			Map<String,Object> makePaymentMap = new HashMap<String,Object>();
+			makePaymentMap.put("CreatedBy", "guest_zmb1");
+			makePaymentMap.put("EmiYn", "N");
+			makePaymentMap.put("InstallmentMonth", null);
+			makePaymentMap.put("InstallmentPeriod", null);
+			makePaymentMap.put("InsuranceId", "100046");
+			makePaymentMap.put("Premium", totalPremium);
+			makePaymentMap.put("QuoteNo", quoteNo);
+			makePaymentMap.put("Remarks", "None");
+			makePaymentMap.put("SubUserType", "b2c");
+			makePaymentMap.put("UserType", "User");
+			
+			Map<String,Object> makePaymentResult =null;
+			Map<String,Object> makePaymentRes =null;
+			try {
+				String makePayemantReq = objectPrint.toJson(makePaymentMap);
+				
+				String makePaymentApi = makePayment;
+				log.info("MAKE PAYMENT API: "+makePaymentApi);
+				
+				log.info("MAKE PAYMENT REQUEST: "+makePayemantReq);
+				String apiResponse = thread.callZambiaComApi(makePaymentApi, makePayemantReq);
+				log.info("MAKE PAYMENT RESPONSE: "+apiResponse);
+				
+				makePaymentRes = mapper.readValue(apiResponse, Map.class);
+				makePaymentResult = makePaymentRes.get("Result") == null ? null :
+					(Map<String, Object>) makePaymentRes.get("Result");
+				
+				if(makePaymentResult == null) {
+					String errorMessgae = makePaymentRes.get("ErrorMessage") == null ? "" : makePaymentRes.get("ErrorMessage").toString();
+					response = errorMessgae;
+					return response;
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				exception = e.getMessage();
+			}
+			
+			if(StringUtils.isNotBlank(exception)) {
+				errorList.add(new Error(exception, "ErrorMsg", "101"));
+			}
+			
+			if(errorList.size()>0) {
+				throw new WhatsAppValidationException(errorList);
+
+			}
+			
+			log.info("MAKE PAYMENT BLOCK END : "+new Date());
+			
+			//==============================MAKE PAYMENT BLOCK END=============================================
+			
+			//==============================INSERT PAYMENT BLOCK START=============================================
+			log.info("INSERT PAYMENT BLOCK START : "+new Date());
+			
+			Map<String,Object> insertPaymentMap = new HashMap<>();
+			insertPaymentMap.put("AccountNumber", null);
+			insertPaymentMap.put("BankName", null);
+			insertPaymentMap.put("ChequeDate", "");
+			insertPaymentMap.put("ChequeNo", null);
+			insertPaymentMap.put("CreatedBy", "guest_zmb1");
+			insertPaymentMap.put("EmiYn", "N");
+			insertPaymentMap.put("IbanNumber", null);
+			insertPaymentMap.put("InsuranceId", "100046");
+			insertPaymentMap.put("MICRNo", null);
+			insertPaymentMap.put("MobileCode1", "260");
+			insertPaymentMap.put("MobileNo1", mobileNo);
+			insertPaymentMap.put("PayeeName", customerName);
+			insertPaymentMap.put("PaymentId", makePaymentResult.get("PaymentId"));
+			insertPaymentMap.put("PaymentType", "5");
+			insertPaymentMap.put("Payments", "");
+			insertPaymentMap.put("Premium", totalPremium);
+			insertPaymentMap.put("QuoteNo", quoteNo);
+			insertPaymentMap.put("Remarks", "None");
+			insertPaymentMap.put("SubUserType", "b2c");
+			insertPaymentMap.put("UserType", "User");
+			insertPaymentMap.put("WhatsappCode", null);
+			insertPaymentMap.put("WhatsappNo", null);
+			
+			Map<String,Object> insertPaymentRes = null;
+			Map<String,Object> instPatmentResult = null;
+			try {
+				String insertPaymentReq = objectPrint.toJson(insertPaymentMap);
+				String insertPaymentApi = insertPayment;
+				log.info("INSERT PAYMENT API: "+insertPaymentApi);
+				log.info("INSERT PAYMENT REQUEST: "+insertPaymentReq);
+				String apiResponse = thread.callZambiaComApi(insertPaymentApi, insertPaymentReq);
+				log.info("INSERT PAYMENT RESPONSE: "+apiResponse);
+				insertPaymentRes = mapper.readValue(apiResponse, Map.class);
+				instPatmentResult = insertPaymentRes.get("Result") == null ? null :
+					(Map<String, Object>) insertPaymentRes.get("Result");
+				
+				if(instPatmentResult == null) {
+					String errorMessgae = insertPaymentRes.get("ErrorMessage") == null ? "" : insertPaymentRes.get("ErrorMessage").toString();
+					response = errorMessgae;
+					return response;
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				exception = e.getMessage();
+			}
+			
+			if(StringUtils.isNotBlank(exception)) {
+				errorList.add(new Error(exception, "ErrorMsg", "101"));
+			}
+			
+			if(errorList.size()>0) {
+				throw new WhatsAppValidationException(errorList);
+
+			}
+			
+			String marchantRefNo = instPatmentResult.get("MerchantReference") == null ? "" :
+				instPatmentResult.get("MerchantReference").toString();
+			
+		//	String quoteNo = instPatmentResult.get("QuoteNo") == null ? "" :
+		//		instPatmentResult.get("QuoteNo").toString();
+			
+			log.info("RequestRefNo : "+reqRefNo+" ||  MerchantReference : "+marchantRefNo+" || QuoteNo : "+quoteNo+" ");
+			
+			log.info("INSERT PAYMENT BLOCK END : "+new Date());
+			
+			//==============================INSERT PAYMENT BLOCK END=============================================
+			
+			//==============================PAYMENT LINK BLOCK START=============================================
+			log.info("PAYMENT LINK BLOCK START : "+new Date());
+			
+		    Map<String,Object> paymentMap = new HashMap<>();
+		    paymentMap.put("MerchantRefNo", marchantRefNo);
+		    paymentMap.put("CompanyId", "100046");
+		    paymentMap.put("WhatsappCode", "260");
+		    paymentMap.put("WhtsappNo", mobileNo);
+		    paymentMap.put("QuoteNo", quoteNo);
+		    
+		    String payJson =objectPrint.toJson(paymentMap);
+		    String encodeReq =Base64.getEncoder().encodeToString(payJson.getBytes());
+		    
+		    String paymentUrl = phoenixMotorPaymentlink+encodeReq;
+		    
+		    log.info("PAYMENT LINK :" +paymentUrl);
+		    
+		    log.info("PAYMENT LINK BLOCK END : "+new Date());
+		    
+		  //==============================PAYMENT LINK BLOCK END=============================================
+		    
+		  //==============================WHATSAPP RESPONSE BLOCK START=============================================
+		    log.info("WHATSAPP RESPONSE BLOCK START : "+new Date());
+		    
+		    Map<String,Object> getMotorReq = new HashMap<String, Object>();
+			getMotorReq.put("RequestReferenceNo", reqRefNo);
+			
+			String api_request =mapper.writeValueAsString(getMotorReq);
+			String motorDetailsApi = getAllMotorDetailsApi;
+			String apiResponse = thread.callZambiaComApi(motorDetailsApi, api_request);
+			
+			Map<String,Object> getMotorRes =mapper.readValue(apiResponse, Map.class);
+			
+			List<Map<String,Object>> motorRes =getMotorRes.get("Result")==null?null:
+				mapper.readValue(mapper.writeValueAsString(getMotorRes.get("Result")), List.class);
+			
+			log.info("ALL MOTOR DETAILS :" +motorRes);
+			
+			Map<String,Object> mot = motorRes.get(0);
+			
+			botResponceData.put("RegNo", mot.get("Registrationnumber")==null?"N/A":mot.get("Registrationnumber"));
+			botResponceData.put("VehicleUsage", mot.get("MotorUsageDesc")==null?"N/A":mot.get("MotorUsageDesc"));
+			botResponceData.put("BodyType", mot.get("VehicleTypeDesc")==null?"N/A":mot.get("VehicleTypeDesc"));
+		//	botResponceData.put("color",mot.get("ColorDesc")==null?"N/A":mot.get("ColorDesc"));
+		//	botResponceData.put("InsuranceClass",insuranceClass);
+		//	botResponceData.put("Premium", pre);
+			botResponceData.put("url", paymentUrl);
+		//	botResponceData.put("VatAmt", vatTaxs);
+		//	botResponceData.put("SumInsured", mot.get("SumInsured")==null?"N/A":mot.get("SumInsured"));
+		//	botResponceData.put("chassis", mot.get("Chassisnumber")==null?"N/A":mot.get("Chassisnumber"));
+		//	botResponceData.put("VatPercentage", String.valueOf(vatPercentage.longValue()));
+			botResponceData.put("TotalPremium", totalPremium);
+		//	botResponceData.put("InceptionDate", policyDate);
+		//	botResponceData.put("ExpiryDate",policyEndDate);
+			botResponceData.put("ReferenceNo", reqRefNo);
+			botResponceData.put("Model", mot.get("VehcilemodelDesc")==null?"N/A":mot.get("VehcilemodelDesc"));
+			botResponceData.put("Make", mot.get("VehiclemakeDesc")==null?"N/A":mot.get("VehiclemakeDesc"));
+			botResponceData.put("CustomerName", customerName);
+			botResponceData.put("QuoteNo", quoteNo);
+			
+			
+			
+			return botResponceData;
 	}
 
 }
