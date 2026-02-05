@@ -76,6 +76,7 @@ Logger log = LogManager.getLogger(getClass());
 			String whatsappNo =documentInfoMap.get("whatsappNo");
 			String quoteNo =documentInfoMap.get("quoteNo");
 			String tiraPostApi=documentInfoMap.get("tiraPostApi");
+			String companyId=documentInfoMap.get("companyId");
 
 			log.info("USER THREAD REQUEST || "+documentInfoMap);
 			
@@ -91,8 +92,18 @@ Logger log = LogManager.getLogger(getClass());
 						e.printStackTrace();
 					}
 					
-				
+				if("100046".equalsIgnoreCase(companyId)) {
 					response =thread.callSwazilandComApi(url, request);
+				}else if("100047".equalsIgnoreCase(companyId)) {
+					response =thread.callBotswanaComApi(url, request);
+				}else if("100048".equalsIgnoreCase(companyId)) {
+					response =thread.callMozambiqueComApi(url, request);
+				}else if("100049".equalsIgnoreCase(companyId)) {
+					response =thread.callSwazilandComApi(url, request);
+				}else if("100050".equalsIgnoreCase(companyId)) {
+					response =thread.callNamibiaComApi(url, request);
+				}
+					
 					
 					log.info("paymentStatusCheckRes -"+i+"+" +response);
 					
@@ -100,15 +111,15 @@ Logger log = LogManager.getLogger(getClass());
 					String transactionStatus = "";
 					try {	
 						Map<String,Object>	checkStatusRes =mapper.readValue(response, Map.class);
-						String checkStatus1 =(String)checkStatusRes.get("message");
-					    JsonObject checkStatus = objectPrint.fromJson(checkStatus1, JsonObject.class);
+						//String checkStatus1 =(String)checkStatusRes.get("message");
+					   // JsonObject checkStatus = objectPrint.fromJson(checkStatus1, JsonObject.class);
 						//List<Map<String,Object>> paymentData =(List<Map<String,Object>>)[0];
 					  //  JsonArray jsonElement = (JsonArray) checkStatus.get("data");
 					  //  JsonObject paymentData =(JsonObject) jsonElement.get(0);
 					  //  paymentStatus = paymentData.get("payment_status").getAsString();
 						paymentStatus = checkStatusRes.get("result").toString();  //paymentData.get(0).get("payment_status").toString();
-						Map<String,Object>	transRes =mapper.readValue(checkStatus1, Map.class);
-						transactionStatus = transRes.get("resultDetails.ExtendedDescription").toString();
+						//Map<String,Object>	transRes =mapper.readValue(checkStatus1, Map.class);
+						//transactionStatus = transRes.get("resultDetails.ExtendedDescription").toString();
 						
 					}catch (Exception e) {
 						e.printStackTrace();
@@ -119,10 +130,12 @@ Logger log = LogManager.getLogger(getClass());
 					log.info("MerchantReference : "+merchantRefNo+" || paymentStatus : " +paymentStatus);
 					log.info("Transaction Status : "+transactionStatus);
 
-					if(("COMPLETED".equalsIgnoreCase(paymentStatus)) &&
-							("Transaction Successful").equalsIgnoreCase(transactionStatus)) {
+					if(("COMPLETED".equalsIgnoreCase(paymentStatus))) 
+						//	&&
+						//	("Transaction Successful").equalsIgnoreCase(transactionStatus)) 
+							{
 						
-						
+						/*
 						Map<String,String> tiraPost =new HashMap<>();
 						tiraPost.put("QuoteNo", quoteNo);
 						String tiraPostReq =objectPrint.toJson(tiraPost);
@@ -163,9 +176,33 @@ Logger log = LogManager.getLogger(getClass());
 						RequestBody body = RequestBody.create(documentReq, MediaType.parse("application/json"));
 						
 						String url ="https://live-server-103813.wati.io/api/v1"+whatsappApi.replace("{whatsappNumber}",whatsappCode+whatsappNo);
+						*/
+						String msgSendUrl = "";
+						OkHttpClient okhttp = new OkHttpClient.Builder()
+								.readTimeout(30, TimeUnit.SECONDS)
+								.build();
 						
+						Map<String,Object> reqMap = new HashMap<>();
+						reqMap.put("user.channel", "whatsapp");
+						reqMap.put("user.phone_no", whatsappCode+whatsappNo);
+						reqMap.put("payment_status", "Payment Success");
+						String req = objectPrint.toJson(reqMap);
+						if("100046".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "https://api.ailifebot.com/bot-api/v2.0/customer/121992/bot/5183332087764a72/flow/3159917417604B688331C3AA01D01F98?authorization=Basic%20b57fe5ad-9597-46ad-8d30-f88e3fd3accd-IvWZbqr";
+						}else if("100047".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "";
+						}else if("100048".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "";
+						}else if("100049".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "";
+						}else if("100050".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "";
+						}
+						log.info("SEND MESSAGE REQUEST ......." +req);
+						
+						RequestBody body = RequestBody.create(req, MediaType.parse("application/json"));
 						Request requestBuilder = new Request.Builder()
-								.url(url)
+								.url(msgSendUrl)
 								.addHeader("Authorization", whatsappAuth)
 								.post(body)
 								.build();
@@ -178,7 +215,7 @@ Logger log = LogManager.getLogger(getClass());
 						}catch (Exception e) {
 							e.printStackTrace();
 						}
-						
+						log.info("MESSAGE RESPONSE ......." +responseString);
 						
 						
 						break;
@@ -192,7 +229,44 @@ Logger log = LogManager.getLogger(getClass());
 						// send payment message to user
 						
 						log.info("payment status || CANCELLED +USERCANCELLED + REJECTED = "+paymentStatus+"");
+						String msgSendUrl = "";
+						OkHttpClient okhttp = new OkHttpClient.Builder()
+								.readTimeout(30, TimeUnit.SECONDS)
+								.build();
+						
+						Map<String,Object> reqMap = new HashMap<>();
+						reqMap.put("user.channel", "whatsapp");
+						reqMap.put("user.phone_no", whatsappCode+whatsappNo);
+						reqMap.put("payment_status", "Payment Failed");
+						String req = objectPrint.toJson(reqMap);
+						if("100046".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "https://api.ailifebot.com/bot-api/v2.0/customer/121992/bot/5183332087764a72/flow/3159917417604B688331C3AA01D01F98?authorization=Basic%20b57fe5ad-9597-46ad-8d30-f88e3fd3accd-IvWZbqr";
+						}else if("100047".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "";
+						}else if("100048".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "";
+						}else if("100049".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "";
+						}else if("100050".equalsIgnoreCase(companyId)) {
+							msgSendUrl = "";
+						}
+						log.info("SEND MESSAGE REQUEST ......." +req);
+						RequestBody body = RequestBody.create(req, MediaType.parse("application/json"));
+						Request requestBuilder = new Request.Builder()
+								.url(msgSendUrl)
+							//	.addHeader("Authorization", whatsappAuth)
+								.post(body)
+								.build();
 
+						Response res =null;
+						String responseString="";
+						try {
+							res =okhttp.newCall(requestBuilder).execute();
+							responseString = res.body().string();
+						}catch (Exception e) {
+							e.printStackTrace();
+						}
+						log.info("MESSAGE RESPONSE ......." +responseString);
 						break ;
 					}
 					

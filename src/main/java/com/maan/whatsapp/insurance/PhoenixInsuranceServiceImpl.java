@@ -298,7 +298,7 @@ public class PhoenixInsuranceServiceImpl implements PhoenixInsuranceService{
 		} */
 		
 		
-	/*	Map<String,String> documentInfoMap = new HashMap<String,String>();
+		Map<String,String> documentInfoMap = new HashMap<String,String>();
 		documentInfoMap.put("whatsappCode", whatsappCode);
 		documentInfoMap.put("whatsappNo", whatsappNo);
 		documentInfoMap.put("motorPolicyDocumentApi", motorPolicyDocumentApi);
@@ -306,12 +306,13 @@ public class PhoenixInsuranceServiceImpl implements PhoenixInsuranceService{
 		documentInfoMap.put("whatsappAuth", this.whatsappAuth);
 		documentInfoMap.put("quoteNo", quoteNo);
 		documentInfoMap.put("tiraPostApi", tiraPostApi);
+		documentInfoMap.put("companyId", CompanyId);
 		
 		PhoenixThreadUserCreation user_Creation = new PhoenixThreadUserCreation(request, url, threadprocess,
 				"PAYMENT_TRIGGER", merchantRefNo, documentInfoMap) ;
 		user_Creation.setName("PAYMENT_TRIGGER");
 		user_Creation.start();
-		
+		/*
 		if(CompanyId.equals("100049")) {//swaziland
 			redirectUrl = swazilandRedirectUrl;
 		}else if(CompanyId.equals("100046")) {//zambia
