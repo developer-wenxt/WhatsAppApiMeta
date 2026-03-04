@@ -3662,22 +3662,41 @@ public class InsuranceServiceImpl implements InsuranceService{
 			insuredClass="Third Party Only";
 		}
 		
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		
+		Date system_date = new Date();
+		
+		String policy_start_date = sdf.format(system_date);
+		Calendar calendar = new GregorianCalendar();
+		calendar.setTime(system_date);
+		calendar.add(Calendar.DATE, 364);
+		String policy_end_date = sdf.format(calendar.getTime());
+		
+		Calendar calendar2 = Calendar.getInstance();
+		calendar2.setTime(system_date);
+		calendar2.add(Calendar.YEAR, -18);
+		 
+		String dob = sdf.format(calendar2.getTime());
+		
 		//save vehicle info
 				Map<String, Object> save_details = new HashMap<String, Object>();
 
-				save_details.put("Insuranceid", "100019");
-				save_details.put("BranchCode", "55");
 				save_details.put("AxelDistance", axle_distance);
+				save_details.put("BranchCode", "55");
 				save_details.put("Chassisnumber", chassis_number);
 				save_details.put("Color", vehicle_color);
 				save_details.put("CreatedBy", "WhatsApp_Uganda_Broker");
+				save_details.put("DisplacementInCM3", null);
 				save_details.put("EngineNumber", engine_number);
 				save_details.put("FuelType", fuel_used);
 				save_details.put("Grossweight",gross_weight);
+				save_details.put("HorsePower", 0);
+				save_details.put("Insuranceid", "100019");
 				save_details.put("ManufactureYear", manufacture_year);
 				save_details.put("MotorCategory", motor_category);
 				save_details.put("Motorusage", vehicle_usage);
 				save_details.put("NumberOfAxels", no_of_axle);
+				save_details.put("NumberOfCylinders", null);
 				save_details.put("OwnerCategory", "1");
 				save_details.put("Registrationnumber", registration_no);
 				save_details.put("ResEngineCapacity", engine_capacity);
@@ -3689,71 +3708,106 @@ public class InsuranceServiceImpl implements InsuranceService{
 				save_details.put("Vehcilemodel", vehicle_model);
 				save_details.put("VehicleType", body_type);
 				save_details.put("Vehiclemake", vehicle_make);
-				save_details.put("RegistrationDate", null);
-				save_details.put("DisplacementInCM3", 0);
-				save_details.put("NumberOfCylinders", 0);
-				save_details.put("HorsePower", 0);
+				//save_details.put("RegistrationDate", null);
+				
+				
+				
 
 				String saveVehicle = wh_save_vehicle_info_api;
 				log.info("calling......");
 				String token = this.aysyncThread.getEwayToken();
-			    String vehResponse = aysyncThread.callEwayApi(saveVehicle, mapper.writeValueAsString(save_details), token);
+				String saveVehicleReq = mapper.writeValueAsString(save_details);
+				log.info("SAVE VEHICLE INFO REQUET: " + saveVehicleReq);
+			    String vehResponse = aysyncThread.callEwayApi(saveVehicle, saveVehicleReq, token);
 				Map<String, Object> saveMap = mapper.readValue(vehResponse, Map.class);
-				log.info("response" + vehResponse);
+				log.info("SAVE VEHICLE INFO RESPONSE" + vehResponse);
 
 		
 		LinkedHashMap<String,Object> customerCreationReq = new LinkedHashMap<String, Object>();
+		customerCreationReq.put("Activities",  "");
 		customerCreationReq.put("Address1",  address);
+		customerCreationReq.put("Address2",  "");
+		customerCreationReq.put("AppointmentDate",  "");
 		customerCreationReq.put("BranchCode", "55");// live branch code is 55 / local branch code is 59;
 		customerCreationReq.put("BrokerBranchCode", "1");
-		customerCreationReq.put("BusinessType", "1");
+		customerCreationReq.put("BusinessType", null);
+		customerCreationReq.put("CityName", "Buikwe");
+		customerCreationReq.put("CityCode", "300101");
 		customerCreationReq.put("ClientName", customer_name);
 		customerCreationReq.put("Clientstatus", "Y");
+		customerCreationReq.put("ComplianceStatus", null);
+		customerCreationReq.put("Country", "UGA");
+		customerCreationReq.put("CountryName", "Uganda");
 		customerCreationReq.put("CreatedBy",req.getWhatsAppCode() + req.getWhatsAppNo());
+		customerCreationReq.put("CountryName", "Uganda");
+		customerCreationReq.put("CustCatgCode", "35");
+		customerCreationReq.put("CustomerAsInsurer", "N");
+		customerCreationReq.put("CustomerReferenceNo", null);
+		customerCreationReq.put("CustomerType", null);
+		customerCreationReq.put("DobOrRegDate", dob);
+		customerCreationReq.put("Email1", email_id);
+		customerCreationReq.put("Email2", null);
+		customerCreationReq.put("Email3", null);
+		customerCreationReq.put("ExpiryDate", null);
+		customerCreationReq.put("Fax", null);
+		customerCreationReq.put("Gender", "M");
 		customerCreationReq.put("IdNumber", "76764313");
 		customerCreationReq.put("IdType", "1");
+		customerCreationReq.put("IndustryType", null);
+		customerCreationReq.put("IndustryTypeId", null);
 		customerCreationReq.put("InsuranceId", "100019");
 		customerCreationReq.put("IsTaxExempted", "N");
 		customerCreationReq.put("Language", "1");
+		customerCreationReq.put("LegalStructure", null);
 		customerCreationReq.put("MobileCode1",country_code);
 		customerCreationReq.put("MobileCodeDesc1",country_code);
 		customerCreationReq.put("MobileNo1", mobile_number);
+		customerCreationReq.put("Nationality", "UGA");
+		customerCreationReq.put("Occupation", "99999");
+		customerCreationReq.put("OtherOccupation", "");
+		customerCreationReq.put("Owners", null);
+		customerCreationReq.put("PinCode", "12345");
 		customerCreationReq.put("Placeofbirth", address);
 		customerCreationReq.put("PolicyHolderType", "1");
 		customerCreationReq.put("PolicyHolderTypeid", "59");
 		customerCreationReq.put("PreferredNotification", "sms");
 		customerCreationReq.put("ProductId", "5");
 		customerCreationReq.put("RegionCode", region);
+		customerCreationReq.put("RiskAssessmentDate", null);
 		customerCreationReq.put("SaveOrSubmit", "Save");
-		customerCreationReq.put("Status", "Y");
-		customerCreationReq.put("ClientStatus", "Y");
-		customerCreationReq.put("Title", title);
-		customerCreationReq.put("Type", "Broker");
-		customerCreationReq.put("VrTinNo", "0");
-		customerCreationReq.put("WhatsappCode", country_code);
-		customerCreationReq.put("WhatsappDesc", country_code);
-		customerCreationReq.put("WhatsappNo", req.getWhatsAppNo());
-		customerCreationReq.put("CityName", "Buikwe");
-		customerCreationReq.put("CityCode", "300101");
+		customerCreationReq.put("SocioProfessionalCategory", null);
 		customerCreationReq.put("StateCode", "10001");
 		customerCreationReq.put("StateName", "CENTRAL");
+		customerCreationReq.put("Status", "Y");
 		customerCreationReq.put("Street", "7th FLOOR,Exim Tower,Ghana Avenue");
-		customerCreationReq.put("Address1", "P.O.Box 9942,Dar es Salaam");
-		customerCreationReq.put("Nationality", "UGA");
-		customerCreationReq.put("Email1", email_id);
+		//customerCreationReq.put("ClientStatus", "Y");
+		customerCreationReq.put("TaxExemptedId", null);
+		customerCreationReq.put("TelephoneNo1", "");
+		customerCreationReq.put("TelephoneNo2", null);
+		customerCreationReq.put("TelephoneNo3", null);
+		customerCreationReq.put("Title", title);
+		customerCreationReq.put("Type", null);
+		customerCreationReq.put("VrTinNo", null);
+		customerCreationReq.put("WealthSource", null);
+		//customerCreationReq.put("WhatsappCode", country_code);
+		customerCreationReq.put("WhatsappDesc", "1");
+		//customerCreationReq.put("WhatsappNo", req.getWhatsAppNo());
+		customerCreationReq.put("Zone", "1");
+		
+		
 
 		
 		
 		String api_request =mapper.writeValueAsString(customerCreationReq);
 		
-		System.out.println("CUSTOMER : " +api_request);
+		System.out.println("CUSTOMER SAVE REQUEST: " +api_request);
 
 		String api =this.customerApi;
 		
 		String api_response =serviceImpl.callEwayApi(api, api_request);
 		
 		
-		System.out.println("CUSTOMER : " +api_response);
+		System.out.println("CUSTOMER SAVE RESPONSE: " +api_response);
 		
 		Map<String,Object> cust =mapper.readValue(api_response, Map.class);
 		
@@ -3761,15 +3815,7 @@ public class InsuranceServiceImpl implements InsuranceService{
 			mapper.readValue(mapper.writeValueAsString(cust.get("Result")), Map.class);
 		
 		
-		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		
-		Date system_date = new Date();
-		
-		String policy_start_date = sdf.format(system_date);
-		Calendar calendar = new GregorianCalendar();
-		calendar.setTime(system_date);
-		calendar.add(Calendar.DATE, 364);
-		String policy_end_date = sdf.format(calendar.getTime());
 		
 		String customerRefNo = cust_rsult.get("SuccessId")==null?"":cust_rsult.get("SuccessId").toString();
 		
@@ -3835,155 +3881,169 @@ public class InsuranceServiceImpl implements InsuranceService{
 		String vehicleType[] = stp_req.get("BodyType")==null?null:stp_req.get("BodyType").toString().split("~");
 
 		LinkedHashMap<String,Object> stpReq = new LinkedHashMap<String, Object>();
-		stpReq.put("ExcessLimit", null);
-		stpReq.put("Deductibles", null);
-		stpReq.put("BrokerBranchCode",StringUtils.isBlank(broker_branchcode)?"1":broker_branchcode);
+		//stpReq.put("AboutVehicle", null);
+		//stpReq.put("AcccessoriesSumInsured", accessories_sumInured);
+		stpReq.put("AccessoriesInformation", "");
+		stpReq.put("accident", null);
 		stpReq.put("AcExecutiveId", null);
+		stpReq.put("AdditionalCircumstances", "");
+		stpReq.put("AgencyCode", StringUtils.isBlank(agency_code)?"12860":agency_code); // live agency code : 12860/ local agncy code 13254
+		stpReq.put("AggregatedValue",  null);
+		stpReq.put("ApplicationId", "1");
+		stpReq.put("AxelDistance",stp_req.get("AxelDistance")==null?"":stp_req.get("AxelDistance").toString());
+		//stpReq.put("BankingDelegation", null);
+		stpReq.put("BdmCode", StringUtils.isBlank(bdm_code)?"12542333":bdm_code); // live customer code : 12542333 / local customer code : 12542333
+		stpReq.put("BdmName", null);
+		stpReq.put("BorrowerType",  null);
+		stpReq.put("BranchCode", "55"); // live branch code : 55/ local brnach code 59
+		stpReq.put("BrokerBranchCode",StringUtils.isBlank(broker_branchcode)?"1":broker_branchcode);
+		stpReq.put("BrokerCode", "12860");  // live broker code : 12860 / local broker code : 13254
+		stpReq.put("BusinessSource", "");
+		stpReq.put("BusinessSourceId", "101");
+		stpReq.put("CarAlarmYn", carAlaramYn);	
+		stpReq.put("Chassisnumber", stp_req.get("Chassisnumber")==null?"":stp_req.get("Chassisnumber").toString());
+		//stpReq.put("CityLimit", null);
+		//stpReq.put("ClaimType", null);
+		//stpReq.put("CollateralCompanyAddress", null);
+		//stpReq.put("CollateralCompanyName", null);
+		stpReq.put("CollateralName", null);
+		stpReq.put("CollateralYn", "N");
+		stpReq.put("Color", stp_req.get("Color")==null?"":stp_req.get("Color").toString());
+		stpReq.put("ColorDesc", null);
 		stpReq.put("CommissionType", null);
+		stpReq.put("CoverNoteNo", null);
+		stpReq.put("CreatedBy", StringUtils.isBlank(login_id)?"WhatsApp_Uganda_Broker":login_id);
+		stpReq.put("CubicCapacity", stp_req.get("Grossweight")==null?"":stp_req.get("Grossweight").toString());
+		stpReq.put("Currency", "UGX");
 		stpReq.put("CustomerCode", "12542333");// live customer code : 12542333 / local customer code : 45353
 		stpReq.put("CustomerName", customer_name);
-		stpReq.put("BdmCode", StringUtils.isBlank(bdm_code)?"12542333":bdm_code); // live customer code : 12542333 / local customer code : 12542333
-		stpReq.put("BrokerCode", "12860");  // live broker code : 12860 / local broker code : 13254
-		stpReq.put("LoginId", StringUtils.isBlank(login_id)?"WhatsApp_Uganda_Broker":login_id);
-		stpReq.put("SubUserType", StringUtils.isBlank(subusertype)?"Broker":subusertype);
-		stpReq.put("ApplicationId", "1");
 		stpReq.put("CustomerReferenceNo",cust_rsult.get("SuccessId")==null?"":cust_rsult.get("SuccessId").toString());
-		stpReq.put("RequestReferenceNo", "");
-		stpReq.put("Idnumber", "76764313"); // live Id number : 76764313 / local Id number : 464475555
-		stpReq.put("VehicleId",1);
-		stpReq.put("AcccessoriesSumInsured", accessories_sumInured);
-		stpReq.put("AccessoriesInformation", "");
-		stpReq.put("AdditionalCircumstances", "");
-		stpReq.put("AxelDistance",stp_req.get("AxelDistance")==null?"":stp_req.get("AxelDistance").toString());
-		stpReq.put("Chassisnumber", stp_req.get("Chassisnumber")==null?"":stp_req.get("Chassisnumber").toString());
-		stpReq.put("Color", stp_req.get("Color")==null?"":stp_req.get("Color").toString());
-		stpReq.put("CityLimit", null);
-		stpReq.put("CoverNoteNo", null);
-		stpReq.put("MobileCode", req.getWhatsAppCode());
-		stpReq.put("MobileNumber", req.getWhatsAppNo());
-		stpReq.put("OwnerCategory","1");
-		stpReq.put("CubicCapacity", "2000");
-		stpReq.put("CreatedBy", StringUtils.isBlank(login_id)?"WhatsApp_Uganda_Broker":login_id);
+		stpReq.put("DateOfCirculation",  null);
+		stpReq.put("Deductibles", null);
+		//stpReq.put("DefenceValue", "");
 		stpReq.put("DrivenByDesc", "D");
-		stpReq.put("EngineNumber", stp_req.get("EngineNumber")==null?"":stp_req.get("EngineNumber").toString());
-		stpReq.put("FuelType",stp_req.get("FuelType")==null?"":stp_req.get("FuelType").toString());
-		stpReq.put("Gpstrackinginstalled", gpsyn);
-		stpReq.put("Grossweight",stp_req.get("Grossweight")==null?"":stp_req.get("Grossweight").toString());
-		stpReq.put("HoldInsurancePolicy", "N");
-		stpReq.put("Insurancetype", insurance_type);
-		stpReq.put("InsurancetypeDesc", "");
-		stpReq.put("InsuranceId", "100019");
-		stpReq.put("InsuranceClass",insurance_class);
-		stpReq.put("InsuranceClassDesc", "");
-		stpReq.put("InsurerSettlement", "");
-		stpReq.put("InterestedCompanyDetails", "");
-		stpReq.put("ManufactureYear", stp_req.get("ManufactureYear")==null?"":stp_req.get("ManufactureYear").toString());
-		stpReq.put("ModelNumber", null);
-		stpReq.put("MotorCategory",stp_req.get("MotorCategory")==null?"":stp_req.get("MotorCategory").toString());
-		stpReq.put("Motorusage", motor_usage[1]);
-		stpReq.put("MotorusageId",motor_usage[0]);
-		//stpReq.put("MotorusageId","3");
-		stpReq.put("NcdYn", claimYn);
-		stpReq.put("PolicyRenewalYn","N");
-		stpReq.put("NoOfClaims", null);
-		stpReq.put("NumberOfAxels",stp_req.get("NumberOfAxels")==null?"":stp_req.get("NumberOfAxels").toString());
-		stpReq.put("BranchCode", "55"); // live branch code : 55/ local brnach code 59
-		stpReq.put("AgencyCode", StringUtils.isBlank(agency_code)?"12860":agency_code); // live agency code : 12860/ local agncy code 13254
-		stpReq.put("ProductId", "5");
-		stpReq.put("SectionId", Arrays.asList(insurance_type));
-		stpReq.put("PolicyType", insurance_class);
-		stpReq.put("RadioOrCasseteplayer", null);
-		stpReq.put("RegistrationYear", "24/04/2006");
-		stpReq.put("Registrationnumber", stp_req.get("Registrationnumber")==null?"":stp_req.get("Registrationnumber").toString());
-		stpReq.put("RoofRack", null);
-		stpReq.put("SeatingCapacity",stp_req.get("SeatingCapacity")==null?"":stp_req.get("SeatingCapacity").toString());
-		stpReq.put("SourceTypeId", StringUtils.isBlank(source_typeid)?"Broker":source_typeid);
-		stpReq.put("SpotFogLamp", null);
-		stpReq.put("Stickerno", null);
-		stpReq.put("SumInsured", vehicle_si);
-		stpReq.put("InflationSumInsured", "350000");
-		stpReq.put("Tareweight", stp_req.get("Tareweight")==null?"":stp_req.get("Tareweight").toString());
-		stpReq.put("TppdFreeLimit",  null);
-		stpReq.put("TppdIncreaeLimit",  extended_tppd_sumInsured);
-		stpReq.put("TrailerDetails", null);
-		stpReq.put("VehicleModel", model[1]);
-		stpReq.put("VehcilemodelId",model[0]);
-		stpReq.put("VehicleType", vehicleType[1]);
-		stpReq.put("VehicleTypeId", vehicleType[0]);
-		//stpReq.put("VehicleTypeId", "88");
-		stpReq.put("Vehiclemake", make[1]);
-		stpReq.put("VehiclemakeId",make[0]);
-		stpReq.put("WindScreenSumInsured", windShield_sumInured);
-		stpReq.put("Windscreencoverrequired",null);
-		stpReq.put("accident", null);
-		stpReq.put("periodOfInsurance", 365);
-		stpReq.put("PolicyStartDate", policy_start_date);
-		stpReq.put("PolicyEndDate", policy_end_date);
-		stpReq.put("Currency", "UGX");
-		stpReq.put("ExchangeRate", "1.0");
-		stpReq.put("HavePromoCode", "N");
-		stpReq.put("PromoCode",  null);
-		stpReq.put("CollateralYn", "N");
-		stpReq.put("BorrowerType",  null);
-		stpReq.put("CollateralName", null);
-		stpReq.put("FirstLossPayee", null);
-		stpReq.put("FleetOwnerYn", "N");
-		stpReq.put("NoOfVehicles", "1");
-		stpReq.put("SavedFrom", "API");
-		stpReq.put("UserType", StringUtils.isBlank(usertype)?"Broker":usertype);
-		stpReq.put("TiraCoverNoteNo", null);
-		stpReq.put("EndorsementYn", "N");
+		stpReq.put("DriverDetails",  null);
 		stpReq.put("EndorsementDate", null);
 		stpReq.put("EndorsementEffectiveDate", null);
 		stpReq.put("EndorsementRemarks",  null);
 		stpReq.put("EndorsementType",  null);
 		stpReq.put("EndorsementTypeDesc",  null);
+		//stpReq.put("EndorsementYn", null);
 		stpReq.put("EndtCategoryDesc", null);
 		stpReq.put("EndtCount",  null);
 		stpReq.put("EndtPrevPolicyNo", null);
 		stpReq.put("EndtPrevQuoteNo",  null);
 		stpReq.put("EndtStatus",  null);
-		stpReq.put("IsFinanceEndt",  null);
-		stpReq.put("OrginalPolicyNo",  null);
-		stpReq.put("ClaimType", "0");
-		stpReq.put("VehicleValueType", "");
+		stpReq.put("EngineCapacity",  engine_capacity);
+		stpReq.put("EngineNumber", stp_req.get("EngineNumber")==null?"":stp_req.get("EngineNumber").toString());
+		stpReq.put("ExcessLimit", null);
+		stpReq.put("ExchangeRate", "1.0");
+		stpReq.put("FirstLossPayee", null);
+		stpReq.put("FleetOwnerYn", "N");
+		stpReq.put("FuelType", stp_req.get("FuelType")==null?"":stp_req.get("FuelType").toString());
+		stpReq.put("FuelTypeDesc", stp_req.get("FuelType")==null?"":stp_req.get("FuelType").toString());
+		stpReq.put("Gpstrackinginstalled", gpsyn);
+		stpReq.put("Grossweight",0);//stp_req.get("Grossweight")==null?"":stp_req.get("Grossweight").toString()
+		stpReq.put("HavePromoCode", "N");
+		stpReq.put("HoldInsurancePolicy", "N");
+		//stpReq.put("HorsePower", "");
+		stpReq.put("Idnumber", "76764313"); // live Id number : 76764313 / local Id number : 464475555
 		stpReq.put("Inflation", "");
-		stpReq.put("Ncb", "0");
-		stpReq.put("DefenceValue", "");
-		stpReq.put("PurchaseDate",  null);
-		stpReq.put("RegistrationDate",  null);
-		stpReq.put("Mileage",  null);
-		stpReq.put("NoOfClaimYears",  null);
-		stpReq.put("NoOfPassengers",  null);
-		stpReq.put("PreviousInsuranceYN", "N");
-		stpReq.put("PreviousLossRatio", "");
-		stpReq.put("HorsePower", "");
-		stpReq.put("Zone", "1");
-		stpReq.put("DateOfCirculation",  null);
-		stpReq.put("NewValue",  null);
-		stpReq.put("MarketValue",  null);
-		stpReq.put("AggregatedValue",  "null");
-		stpReq.put("NumberOfCards",  null);
-		stpReq.put("MunicipalityTraffic",  null);
-		stpReq.put("TransportHydro",  null);
-		stpReq.put("BankingDelegation", "");
+		stpReq.put("InflationSumInsured", "");
+		stpReq.put("InsuranceClass",0);
+		stpReq.put("InsuranceClassDesc", null);
+		stpReq.put("InsuranceId", "100019");
+		stpReq.put("Insurancetype", insurance_type);
+		stpReq.put("InsurancetypeDesc", insuredClass);
+		stpReq.put("InsurerSettlement", "");
+		stpReq.put("InterestedCompanyDetails", "");
+		stpReq.put("IsFinanceEndt",  null);
+		stpReq.put("LoanAmount", null);
 		stpReq.put("LoanStartDate",  null);
 		stpReq.put("LoanEndDate",  null);
-		stpReq.put("CollateralCompanyAddress", "");
-		stpReq.put("CollateralCompanyName", "");
-		stpReq.put("LoanAmount", 0);
-		stpReq.put("PaCoverId", "0");
-		stpReq.put("UsageId", "");
-		stpReq.put("VehicleTypeIvr", "");
-		stpReq.put("ZoneCirculation", "");
+		stpReq.put("LoginId", StringUtils.isBlank(login_id)?"WhatsApp_Uganda_Broker":login_id);
+		stpReq.put("ManufactureYear", stp_req.get("ManufactureYear")==null?"":stp_req.get("ManufactureYear").toString());
+		//stpReq.put("MarketValue",  null);
+		//stpReq.put("Mileage",  null);
+		stpReq.put("MobileCode", req.getWhatsAppCode());
+		stpReq.put("MobileNumber", req.getWhatsAppNo());
+		stpReq.put("ModelNumber", null);
+		stpReq.put("MotorCategory",stp_req.get("MotorCategory")==null?"":stp_req.get("MotorCategory").toString());
+		stpReq.put("Motorusage", motor_usage[1]);
+		stpReq.put("MotorusageId",motor_usage[0]);
+		//stpReq.put("MotorusageId","3");
+		//stpReq.put("MunicipalityTraffic",  null);
+		stpReq.put("Ncb", "0");
+		stpReq.put("NcdYn", claimYn);
+		stpReq.put("NewValue",  null);
+		stpReq.put("NoOfClaims", null);
+		//stpReq.put("NoOfClaimYears",  null);
+		//stpReq.put("NoOfFemale", null);
+		//stpReq.put("NoOfMale",  null);
+		//stpReq.put("NoOfPassengers",  null);
+		//stpReq.put("NoOfVehicles", "1");
+		stpReq.put("NumberOfAxels",stp_req.get("NumberOfAxels")==null?"":stp_req.get("NumberOfAxels").toString());
+		//stpReq.put("NumberOfCards",  null);
+		stpReq.put("Occupation",  "99999");
+		stpReq.put("OrginalPolicyNo",  null);
+		stpReq.put("OwnerCategory","1");
+		//stpReq.put("PaCoverId", null);
+		stpReq.put("periodOfInsurance", null);
+		stpReq.put("PolicyEndDate", policy_end_date);
+		stpReq.put("PolicyRenewalYn","N");
+		stpReq.put("PolicyStartDate", policy_start_date);
+		stpReq.put("PolicyType", insurance_class);
+		stpReq.put("PreviousInsuranceYN", "N");
+		stpReq.put("PreviousLossRatio", "");
+		stpReq.put("ProductId", "5");
+		stpReq.put("PromoCode",  null);
+		stpReq.put("PurchaseDate",  null);
+		stpReq.put("QuoteExpiryDays",  "90");
+		stpReq.put("RadioOrCasseteplayer", null);
+		//stpReq.put("RegistrationDate",  null);
+		stpReq.put("Registrationnumber", stp_req.get("Registrationnumber")==null?"":stp_req.get("Registrationnumber").toString());
+		stpReq.put("RegistrationYear", "24/04/2006");
+		stpReq.put("RequestReferenceNo", "");
+		stpReq.put("RoofRack", null);
+		stpReq.put("SavedFrom", "API");
+		stpReq.put("SearchFromApi", false);
+		stpReq.put("SeatingCapacity",stp_req.get("SeatingCapacity")==null?"":stp_req.get("SeatingCapacity").toString());
+		stpReq.put("SectionId", Arrays.asList(insurance_type));
+		stpReq.put("SourceTypeId", StringUtils.isBlank(source_typeid)?"Broker":source_typeid);
+		stpReq.put("SpotFogLamp", null);
 		stpReq.put("Status", "Y");
-		stpReq.put("DriverDetails",  null);
-		stpReq.put("CarAlarmYn", carAlaramYn);		
+		stpReq.put("Stickerno", null);
+		stpReq.put("SubUserType", StringUtils.isBlank(subusertype)?"Broker":subusertype);
+		stpReq.put("SumInsured", vehicle_si);
+		stpReq.put("Tareweight", stp_req.get("Tareweight")==null?"":stp_req.get("Tareweight").toString());
+		//stpReq.put("TiraCoverNoteNo", null);
+		stpReq.put("TppdFreeLimit",  null);
+		stpReq.put("TppdIncreaeLimit",  extended_tppd_sumInsured);
+		stpReq.put("TrailerDetails", null);
+		//stpReq.put("TransportHydro",  null);
+		//stpReq.put("UsageId", null);
+		stpReq.put("UserType", StringUtils.isBlank(usertype)?"Broker":usertype);
+		stpReq.put("Vehcilemodel", model[1]);
+		stpReq.put("VehcilemodelId",model[0]);
+		stpReq.put("VehicleClass", null);
+		stpReq.put("VehicleId", "1");
+		stpReq.put("Vehiclemake", make[1]);
+		stpReq.put("VehiclemakeId",make[0]);
+		stpReq.put("VehicleType", vehicleType[1]);
+		stpReq.put("VehicleTypeId", vehicleType[0]);
+		//stpReq.put("VehicleTypeId", "88");
+		//stpReq.put("VehicleTypeIvr", null);
+		//stpReq.put("VehicleValueType", "");
+		stpReq.put("Windscreencoverrequired",null);
+		//stpReq.put("WindScreenSumInsured", windShield_sumInured);
+		stpReq.put("Zone", "1");
+		//stpReq.put("ZoneCirculation", null);
+			
 		LinkedHashMap<String, Object> exchangeRateScenario = new  LinkedHashMap<>();
 		exchangeRateScenario.put("OldAcccessoriesSumInsured", null);
-		exchangeRateScenario.put("OldCurrency", "UGX");
-		exchangeRateScenario.put("OldExchangeRate", "1.0");
-		exchangeRateScenario.put("OldSumInsured", 0);
+		exchangeRateScenario.put("OldCurrency", null);//"UGX"
+		exchangeRateScenario.put("OldExchangeRate", null);//"1.0"
+		exchangeRateScenario.put("OldSumInsured", null);//0
 		exchangeRateScenario.put("OldTppdIncreaeLimit", null);
 		exchangeRateScenario.put("OldWindScreenSumInsured", null);
 		LinkedHashMap<String, Object> excahnge = new  LinkedHashMap<>();
@@ -3993,13 +4053,13 @@ public class InsuranceServiceImpl implements InsuranceService{
 
 		api_request =mapper.writeValueAsString(stpReq);
 		
-		log.info("STP Save Motor Request : "+api_request);
+		log.info("SAVE MOTOR API REQUEST : "+api_request);
 
 		 api =this.saveMotorApi;
 		
 		 api_response =serviceImpl.callEwayApi(api, api_request);
 		
-		log.info("STP Save Motor response : "+api_response);
+		log.info("SAVE MOTOR API RESPONSE : "+api_response);
 		
 		Map<String,Object> motorResult=null;
 		List<Map<String,Object>> errors=null;
@@ -4015,23 +4075,25 @@ public class InsuranceServiceImpl implements InsuranceService{
 			refNo=motorResult.get("RequestReferenceNo")==null?"":motorResult.get("RequestReferenceNo").toString();
 					
 			Map<String,Object> calcMap = new HashMap<>();
-			calcMap.put("InsuranceId", motorResult.get("InsuranceId")==null?"":motorResult.get("InsuranceId"));
-			calcMap.put("BranchCode", "55");// live branch code is 55 / local branch code is 59;
 			calcMap.put("AgencyCode", "12860");// live agency code is 12860 / local agency code is 13254;
-			calcMap.put("SectionId", motorResult.get("SectionId")==null?"":motorResult.get("SectionId"));
-			calcMap.put("ProductId", motorResult.get("ProductId")==null?"":motorResult.get("ProductId"));
-			calcMap.put("MSRefNo", motorResult.get("MSRefNo")==null?"":motorResult.get("MSRefNo"));
-			calcMap.put("VehicleId", motorResult.get("VehicleId")==null?"":motorResult.get("VehicleId"));
+			calcMap.put("BranchCode", "55");// live branch code is 55 / local branch code is 59;
 			calcMap.put("CdRefNo", motorResult.get("CdRefNo")==null?"":motorResult.get("CdRefNo"));
-			calcMap.put("VdRefNo", motorResult.get("VdRefNo")==null?"":motorResult.get("VdRefNo"));
-			calcMap.put("CreatedBy", motorResult.get("CreatedBy")==null?"":motorResult.get("CreatedBy"));
-			calcMap.put("productId", motorResult.get("ProductId")==null?"":motorResult.get("ProductId"));
-			calcMap.put("sectionId", motorResult.get("SectionId")==null?"":motorResult.get("SectionId"));
-			calcMap.put("RequestReferenceNo", refNo);
-			calcMap.put("EffectiveDate",policy_start_date);
-			calcMap.put("PolicyEndDate", policy_end_date);
 			calcMap.put("CoverModification", "N");
+			calcMap.put("CreatedBy", motorResult.get("CreatedBy")==null?"":motorResult.get("CreatedBy"));
+			calcMap.put("DdRefNo", "0");
+			calcMap.put("EffectiveDate",policy_start_date);
+			calcMap.put("InsuranceId", motorResult.get("InsuranceId")==null?"":motorResult.get("InsuranceId"));
 			calcMap.put("LocationId", "1");
+			calcMap.put("MSRefNo", motorResult.get("MSRefNo")==null?"":motorResult.get("MSRefNo"));
+			calcMap.put("PolicyEndDate", policy_end_date);
+			calcMap.put("productId", motorResult.get("ProductId")==null?"":motorResult.get("ProductId"));
+			calcMap.put("ProductId", motorResult.get("ProductId")==null?"":motorResult.get("ProductId"));
+			calcMap.put("RequestReferenceNo", refNo);
+			calcMap.put("SectionId", motorResult.get("SectionId")==null?"":motorResult.get("SectionId"));
+			calcMap.put("VdRefNo", motorResult.get("VdRefNo")==null?"":motorResult.get("VdRefNo"));
+			calcMap.put("VehicleId", motorResult.get("VehicleId")==null?"":motorResult.get("VehicleId"));
+			//calcMap.put("sectionId", motorResult.get("SectionId")==null?"":motorResult.get("SectionId"));
+			
 			String calcApi =this.calcApi;
 			
 			List<Map<String,Object>> coverList =null;
@@ -4097,7 +4159,7 @@ public class InsuranceServiceImpl implements InsuranceService{
 				String userCreationReq =objectPrint.toJson(userCreateMap);
 				
 				log.info("User Creation Request || "+userCreationReq);
-				response =serviceImpl.callEwayApi(this.ewayLoginCreateApi, userCreationReq);
+			//	response =serviceImpl.callEwayApi(this.ewayLoginCreateApi, userCreationReq);
 				log.info("User Creation Response || "+response);
 	
 				log.info("USER CREATION BLOCK END : "+new Date());
@@ -4126,17 +4188,22 @@ public class InsuranceServiceImpl implements InsuranceService{
 
 
 			Map<String,Object> vehicleMap =new HashMap<String,Object>();
+			
+			Map<String,Object> buypolicyMap =new HashMap<String,Object>();
+			buypolicyMap.put("CreatedBy", "WhatsApp_Uganda_Broker");
+			buypolicyMap.put("EmiYn", "N");
+			buypolicyMap.put("ManualReferralYn", "N");
+			buypolicyMap.put("ProductId", "5");
+			buypolicyMap.put("RequestReferenceNo", refNo);
+			
 			vehicleMap.put("SectionId",insurance_type);
 			vehicleMap.put("Id", "1");
 			vehicleMap.put("LocationId", "1");
 			vehicleMap.put("Covers", buyCovers);
+			
 			List<Map<String,Object>> vehiMapList =new ArrayList<Map<String,Object>>();
 			vehiMapList.add(vehicleMap);
-			Map<String,Object> buypolicyMap =new HashMap<String,Object>();
-			buypolicyMap.put("RequestReferenceNo", refNo);
-			buypolicyMap.put("CreatedBy", "WhatsApp_Uganda_Broker");
-			buypolicyMap.put("ProductId", "5");
-			buypolicyMap.put("ManualReferralYn", "N");
+			
 			buypolicyMap.put("Vehicles", vehiMapList);
 
 			String buypolicyReq =objectPrint.toJson(buypolicyMap);
