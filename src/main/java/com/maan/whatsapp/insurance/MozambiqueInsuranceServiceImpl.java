@@ -965,6 +965,26 @@ public class MozambiqueInsuranceServiceImpl implements MozambiqueInsuranceServic
 				System.out.println(totalPremium);
 				
 			//	Long totalPremium =pre.longValue()+vatTax.longValue();
+				
+				String referalRemarks =coverList.stream()
+						.filter(p -> p.get("CoverageType").equals("B"))
+						.map(p ->p.get("ReferalDescription")==null?"":p.get("ReferalDescription").toString())
+						.collect(Collectors.joining());
+				System.out.println(referalRemarks);
+			
+				if(StringUtils.isNotBlank(referalRemarks))	{
+					
+					//errorList.add(new Error("QUOTATION HAS BEEN REFERRAL ("+reqRefNo+") || CONTACT ADMIN..!", "ErrorMsg", "101"));
+					String errorMessgae = "QUOTATION HAS BEEN REFERRAL.YOUR REFERENCE CODE "+reqRefNo+". REFERRAL DESCRIPTION :"+referalRemarks+". PLEASE CONTACT ADMIN";
+					response = errorMessgae;
+					return response;
+				}
+				
+			//	if(errorList.size()>0) {
+					//throw new WhatsAppValidationException(errorList);
+					//response = errorList;
+			//		return errorList;
+			//	}
 						
 				log.info("CALC BLOCK END: "+new Date());
 				

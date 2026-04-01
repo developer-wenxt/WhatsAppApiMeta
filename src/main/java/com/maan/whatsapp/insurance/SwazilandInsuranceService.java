@@ -18,4 +18,8 @@ public interface SwazilandInsuranceService {
 
 	Object googleFlowTest(Object req) throws JsonProcessingException, JsonMappingException, WhatsAppValidationException;
 
+	Object generateSwazilandMotorQuote(Object req) throws JsonProcessingException, JsonMappingException, WhatsAppValidationException;
+
+	Object paymentLinkGenerationSwaziland(Object req) throws JsonProcessingException, JsonMappingException, WhatsAppValidationException;
+
 }

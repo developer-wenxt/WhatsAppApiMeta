@@ -190,13 +190,13 @@ Logger log = LogManager.getLogger(getClass());
 						if("100046".equalsIgnoreCase(companyId)) {
 							msgSendUrl = "https://api.ailifebot.com/bot-api/v2.0/customer/121992/bot/5183332087764a72/flow/3159917417604B688331C3AA01D01F98?authorization=Basic%20b57fe5ad-9597-46ad-8d30-f88e3fd3accd-IvWZbqr";
 						}else if("100047".equalsIgnoreCase(companyId)) {
-							msgSendUrl = "";
+							msgSendUrl = "https://api.ailifebot.com/bot-api/v2.0/customer/121992/bot/5183332087764a72/flow/3159917417604B688331C3AA01D01F98?authorization=Basic%20b57fe5ad-9597-46ad-8d30-f88e3fd3accd-IvWZbqr";
 						}else if("100048".equalsIgnoreCase(companyId)) {
-							msgSendUrl = "";
+							msgSendUrl = "https://api.ailifebot.com/bot-api/v2.0/customer/121992/bot/5183332087764a72/flow/3159917417604B688331C3AA01D01F98?authorization=Basic%20b57fe5ad-9597-46ad-8d30-f88e3fd3accd-IvWZbqr";
 						}else if("100049".equalsIgnoreCase(companyId)) {
-							msgSendUrl = "";
+							msgSendUrl = "https://api.ailifebot.com/bot-api/v2.0/customer/121992/bot/5183332087764a72/flow/3159917417604B688331C3AA01D01F98?authorization=Basic%20b57fe5ad-9597-46ad-8d30-f88e3fd3accd-IvWZbqr";
 						}else if("100050".equalsIgnoreCase(companyId)) {
-							msgSendUrl = "";
+							msgSendUrl = "https://api.ailifebot.com/bot-api/v2.0/customer/121992/bot/5183332087764a72/flow/3159917417604B688331C3AA01D01F98?authorization=Basic%20b57fe5ad-9597-46ad-8d30-f88e3fd3accd-IvWZbqr";
 						}
 						log.info("SEND MESSAGE REQUEST ......." +req);
 						

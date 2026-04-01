@@ -16,4 +16,6 @@ public interface NamibiaInsuranceService {
 
 	Object generateNamibiaMotorQuote(Object req) throws JsonProcessingException,JsonMappingException, WhatsAppValidationException;
 
+	Object paymentLinkGenerationNamibia(Object req) throws JsonProcessingException,JsonMappingException, WhatsAppValidationException;
+
 }
