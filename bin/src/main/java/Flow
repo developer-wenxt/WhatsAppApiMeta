@@ -1,0 +1,64 @@
+{
+  "version": "3.1",
+  "screens": [
+    {
+      "id": "FORM_EXAMPLE",
+      "title": "Demo Screen",
+      "terminal": true,
+      "success": true,
+      "data": {},
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "user_data",
+            "children": [
+              {
+                "type": "TextInput",
+                "required": true,
+                "label": "First name",
+                "name": "first_name"
+              },
+              {
+                "type": "TextInput",
+                "required": true,
+                "label": "Second name",
+                "name": "second_name"
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "favourite_language",
+                "data-source": [
+                  {
+                    "id": "javascript",
+                    "title": "Javascript"
+                  },
+                  {
+                    "id": "css",
+                    "title": "CSS"
+                  },
+                  {
+                    "id": "html",
+                    "title": "HTML"
+                  }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Submit data",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {
+                    "name": "${form.first_name}",
+                    "lang": "${form.favourite_language}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

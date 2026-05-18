@@ -1,5 +1,6 @@
 package com.maan.whatsapp.controller.whatsapp;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.maan.whatsapp.ai.AiFlowService;
 import com.maan.whatsapp.auth.basic.WhatsappEncryptionDecryption;
 import com.maan.whatsapp.insurance.AsyncProcessThread;
 import com.maan.whatsapp.insurance.InsuranceServiceImpl;
@@ -46,6 +48,14 @@ import okhttp3.Response;
 @RestController
 @RequestMapping("/whatsapp")
 public class WhatsAppController {
+	@Autowired
+	private AiFlowService aiFlowService;
+
+	//@Autowired
+	//private WhisperService whisperService;
+
+	//@Autowired
+	//private TextToSpeechService textToSpeechService;
 
 	Logger log =LogManager.getLogger(WhatsAppController.class);
 	
@@ -75,8 +85,87 @@ public class WhatsAppController {
 
 	@PostMapping("/webhook")
 	public String webhookRes(@RequestBody WebhookReq request) {
+		String mobileNo = "";
+		String userMessage = "";
+
+		/*
+		Meta webhook request la irundhu
+		mobile number and message extract pannunga
+		*/
+
+		mobileNo = req.getEntry().get(0)
+		        .getChanges().get(0)
+		        .getValue().getMessages().get(0)
+		        .getFrom();
+
+		userMessage = req.getEntry().get(0)
+		        .getChanges().get(0)
+		        .getValue().getMessages().get(0)
+		        .getText().getBody();
+
+		String aiReply =
+		        aiFlowService.process(mobileNo, userMessage);
+
+		System.out.println("AI Reply : " + aiReply);
 		log.info("Webhook request ==>"+printReq.toJson(request));
 		String response = whatsappSer.webhookRes(request);
+		
+		
+		
+		String type = req.getEntry().get(0)
+		        .getChanges().get(0)
+		        .getValue().getMessages().get(0)
+		        .getType();
+
+		if("audio".equalsIgnoreCase(type)) {
+
+		    String mediaId = req.getEntry().get(0)
+		            .getChanges().get(0)
+		            .getValue().getMessages().get(0)
+		            .getAudio().getId();
+
+		    /*
+		    Download audio file using mediaId
+		    */
+
+		    File audioFile = new File("voice.ogg");
+
+		    String convertedText =
+		            whisperService.speechToText(audioFile);
+
+		    String aiReply =
+		            aiFlowService.process(
+		                    mobileNo,
+		                    convertedText);
+
+		    byte[] voiceReply =
+		            textToSpeechService.textToVoice(aiReply);
+
+		    /*
+		    Send voiceReply mp3 to WhatsApp
+		    */
+
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		return response;
 	}
 	
