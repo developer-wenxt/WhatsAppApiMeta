@@ -353,7 +353,7 @@ public class WhatsAppServiceImpl implements WhatsAppService {
 			long count = watiSer.checkSessionStatus(waid);
 
 			log.info("sendChatMsg--> count: " + count);
-				//if(!"00".equalsIgnoreCase(request.getText())) {
+
 			if(!"00".equalsIgnoreCase(request.getText())) {
 				if (count > 0) {
 					
